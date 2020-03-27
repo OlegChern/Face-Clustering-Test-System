@@ -28,6 +28,10 @@ class FaceNetEmbedder(EmbeddingCreator):
                 samples = expand_dims(pixels, axis=0)
                 result = self.Model.predict(samples)
 
-                embedding = result[0]
+                embedding = str(result[0])
+                embedding = embedding.replace("\n", "")
+                embedding = embedding.replace("[", "")
+                embedding = embedding.replace("]", "")
+
                 result_string = f"{image_name}\t{embedding}\n"
                 file.write(result_string)

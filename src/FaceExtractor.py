@@ -31,7 +31,6 @@ class FaceExtractorMTCNN(FaceExtractor):
                 face_image = image[y1:y2, x1:x2]
 
                 face_name = f"{image_name}_face_{idx}.jpg"
-
                 face_path = save_dir + "/" + face_name
 
                 cv2.imwrite(face_path, face_image)
