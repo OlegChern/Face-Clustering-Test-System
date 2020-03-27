@@ -31,3 +31,16 @@ class ImageLoaderMTCNN(ImageLoader):
             image_name = image_path[sep_pos:dot_pos].replace("\\", "/")
 
             yield image, image_name
+
+
+class ImageLoaderFaceNet(ImageLoader):
+    def next_image(self):
+        for image_path in self.ImagesList:
+            image = cv2.imread(image_path)
+            image = cv2.resize(image, (160, 160))
+
+            sep_pos = image_path.rfind("/") + 1
+            dot_pos = image_path.rfind('.')
+            image_name = image_path[sep_pos:dot_pos].replace("\\", "/")
+
+            yield image, image_name

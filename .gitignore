@@ -1,3 +1,8 @@
+# Assets
+results/
+embeddings/
+models/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -5,6 +10,9 @@ __pycache__/
 
 # C extensions
 *.so
+
+# Pycharm Files
+.idea/
 
 # Distribution / packaging
 .Python

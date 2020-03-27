@@ -23,7 +23,7 @@ class FaceExtractorMTCNN(FaceExtractor):
             save_dir = save_path + "/" + image_name
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
-                
+
             for idx, face in enumerate(faces):
                 x1, y1, width, height = face["box"]
                 x2 = x1 + width
