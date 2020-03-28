@@ -1,5 +1,11 @@
+import cv2
 from tensorflow import keras
 from numpy import asarray, expand_dims
+
+
+def preprocess_image_facenet(image):
+    image = cv2.resize(image, (160, 160))
+    return image
 
 
 # An interface for future implementations of face embedding logic
@@ -16,7 +22,6 @@ class FaceNetEmbedder(EmbeddingCreator):
 
     def create_embeddings(self, loader, save_path):
         save_path = save_path.replace("\\", "/")
-
         with open(save_path, "w") as file:
             for image, image_name in loader.next_image():
                 pixels = asarray(image)
