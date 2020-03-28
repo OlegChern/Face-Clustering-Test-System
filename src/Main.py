@@ -1,5 +1,6 @@
 import os
-from src.clustering.ImageClusterer import KmeansClusterer
+from src.clustering.ImageClusterer import ImageClusterer
+from src.clustering.Algorithm import DbscanAlgorithm
 from src.utils.ImageLoader import ImageLoader
 from src.utils.Utils import sort_images
 from src.extraction.FaceExtractor import FaceExtractorMTCNN
@@ -23,8 +24,10 @@ test_file = "./results/embeddings/test.txt"
 # embedder.create_embeddings(loader, test_file)
 
 
-cluster_test = KmeansClusterer(test_file)
-result = cluster_test.cluster_images()
+cluster_test = ImageClusterer(test_file)
+algorithm_test = DbscanAlgorithm()
+
+result = cluster_test.cluster_images(algorithm_test)
 
 save_path = "./results/clustered"
 sort_images(result, save_path)
