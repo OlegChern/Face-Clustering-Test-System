@@ -1,23 +1,30 @@
+import os
 from src.clustering.ImageClusterer import KmeansClusterer
+from src.utils.ImageLoader import ImageLoader
+from src.utils.Utils import sort_images
+from src.extraction.FaceExtractor import FaceExtractorMTCNN
+from src.embedding.EmbeddingCreator import FaceNetEmbedder, preprocess_image_facenet
 
 # image_path = os.path.join("C:\\Users", "Olegator", "Desktop", "reunion")
-# save_path = "C:\\Users\\Olegator\\Desktop\\Course Work\\Face-Clustering-Test-System\\results"
-#
-# loader = ImageLoaderMTCNN(image_path)
-# test = loader.next_image().__next__()
-# print(test)
+# save_path = "C:\\Users\\Olegator\\Desktop\\Course Work\\Face-Clustering-Test-System\\results\\extraction"
+
+# loader = ImageLoader(image_path)
 # extractor = FaceExtractorMTCNN()
 #
 # extractor.extract_faces(loader, save_path)
 
-test_file = "./embeddings/test.txt"
+test_file = "./results/embeddings/test.txt"
 # model_path = "./models/facenet_keras.h5"
-# faces_path = "./results"
+# faces_path = "./results/extraction"
 #
 # embedder = FaceNetEmbedder(model_path)
-# loader = ImageLoaderFaceNet(faces_path)
+# loader = ImageLoader(faces_path, preprocess_image_facenet)
 #
 # embedder.create_embeddings(loader, test_file)
 
+
 cluster_test = KmeansClusterer(test_file)
-print(cluster_test.cluster_images())
+result = cluster_test.cluster_images()
+
+save_path = "./results/clustered"
+sort_images(result, save_path)

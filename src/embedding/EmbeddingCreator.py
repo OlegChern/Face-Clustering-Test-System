@@ -23,7 +23,7 @@ class FaceNetEmbedder(EmbeddingCreator):
     def create_embeddings(self, loader, save_path):
         save_path = save_path.replace("\\", "/")
         with open(save_path, "w") as file:
-            for image, image_name in loader.next_image():
+            for image, image_path in loader.next_image():
                 pixels = asarray(image)
                 pixels = pixels.astype('float32')
 
@@ -38,5 +38,5 @@ class FaceNetEmbedder(EmbeddingCreator):
                 embedding = embedding.replace("[", "")
                 embedding = embedding.replace("]", "")
 
-                result_string = f"{image_name}\t{embedding}\n"
+                result_string = f"{image_path}\t{embedding}\n"
                 file.write(result_string)

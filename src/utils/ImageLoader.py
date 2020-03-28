@@ -26,8 +26,4 @@ class ImageLoader:
             image = cv2.imread(image_path)
             image = self.PreprocessFunc(image)
 
-            sep_pos = image_path.rfind("/") + 1
-            dot_pos = image_path.rfind('.')
-            image_name = image_path[sep_pos:dot_pos].replace("\\", "/")
-
-            yield image, image_name
+            yield image, image_path

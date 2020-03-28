@@ -17,10 +17,14 @@ class FaceExtractorMTCNN(FaceExtractor):
 
     def extract_faces(self, loader, save_path):
         save_path = save_path.replace("\\", "/")
-        for image, image_name in loader.next_image():
+        for image, image_path in loader.next_image():
             faces = self.Detector.detect_faces(image)
 
+            sep_pos = image_path.rfind("/") + 1
+            dot_pos = image_path.rfind('.')
+            image_name = image_path[sep_pos:dot_pos].replace("\\", "/")
             save_dir = save_path + "/" + image_name
+
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
 
