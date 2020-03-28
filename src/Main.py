@@ -1,8 +1,4 @@
-from src.ImageLoader import ImageLoaderFaceNet
-from src.EmbeddingCreator import FaceNetEmbedder
-from src.ImageClusterer import KmeansClusterer
-
-import os
+from src.clustering.ImageClusterer import KmeansClusterer
 
 # image_path = os.path.join("C:\\Users", "Olegator", "Desktop", "reunion")
 # save_path = "C:\\Users\\Olegator\\Desktop\\Course Work\\Face-Clustering-Test-System\\results"
