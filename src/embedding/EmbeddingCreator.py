@@ -3,21 +3,20 @@ from tensorflow import keras
 from numpy import asarray, expand_dims
 
 
-def preprocess_image_facenet(image):
-    image = cv2.resize(image, (160, 160))
-    return image
-
-
 # An interface for future implementations of face embedding logic
 class EmbeddingCreator:
     def create_embeddings(self, loader, save_path):
+        pass
+
+    @staticmethod
+    def preprocess_image(image):
         pass
 
 
 class FaceNetEmbedder(EmbeddingCreator):
     Model = None
 
-    def __init__(self, model_path):
+    def __init__(self, model_path="./models/facenet_keras.h5"):
         self.Model = keras.models.load_model(model_path)
 
     def create_embeddings(self, loader, save_path):
@@ -40,3 +39,8 @@ class FaceNetEmbedder(EmbeddingCreator):
 
                 result_string = f"{image_path}\t{embedding}\n"
                 file.write(result_string)
+
+    @staticmethod
+    def preprocess_image(image):
+        image = cv2.resize(image, (160, 160))
+        return image

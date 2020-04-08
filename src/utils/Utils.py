@@ -15,3 +15,44 @@ def sort_images(labeled_names, save_path):
 
         shutil.copyfile(image_path, dest_path)
 
+
+def extract_person_name(labeled_image):
+    image_path, label = labeled_image
+
+    sep_pos = image_path.rfind("/") + 1
+    dot_pos = image_path.rfind('.')
+    image_name = image_path[sep_pos:dot_pos].replace("\\", "/")
+    person_name = image_name.split("_")[0]
+
+    return image_path, person_name, label
+
+
+def evaluate_metrics(labeled_images):
+    labeled_images = map(extract_person_name, labeled_images)
+
+    true_positive = 0
+    false_negative = 0
+    false_positive = 0
+    for current_path, current_person, current_label in labeled_images:
+        for path, person, label in labeled_images:
+            if path == current_path:
+                continue
+
+            if current_person == person:
+                if current_label == label:
+                    true_positive += 1
+                else:
+                    false_negative += 1
+            else:
+                if current_label == label:
+                    false_positive += 1
+
+    if true_positive == 0 and (false_positive == 0 or false_negative == 0):
+        return 0, 0, 0
+
+    precision = true_positive / (true_positive + false_positive)
+    recall = true_positive / (true_positive + false_negative)
+    f1 = 2 * (precision * recall) / (precision + recall)
+
+    return precision, recall, f1
+

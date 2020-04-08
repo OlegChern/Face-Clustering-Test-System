@@ -1,33 +1,21 @@
-import os
-from src.clustering.ImageClusterer import ImageClusterer
-from src.clustering.Algorithm import DbscanAlgorithm
+from src.test_system.Test import TestSystem
 from src.utils.ImageLoader import ImageLoader
-from src.utils.Utils import sort_images
 from src.extraction.FaceExtractor import FaceExtractorMTCNN
-from src.embedding.EmbeddingCreator import FaceNetEmbedder, preprocess_image_facenet
+from src.clustering.Algorithm import DbscanAlgorithm, KmeansAlgorithm, MeanShiftAlgorithm
+from src.embedding.EmbeddingCreator import FaceNetEmbedder
 
-# image_path = os.path.join("C:\\Users", "Olegator", "Desktop", "reunion")
-# save_path = "C:\\Users\\Olegator\\Desktop\\Course Work\\Face-Clustering-Test-System\\results\\extraction"
+test_file = "./results/embeddings/embeddings.txt"
+save_path = "./results/extraction"
+images_path = "./images"
 
-# loader = ImageLoader(image_path)
 # extractor = FaceExtractorMTCNN()
-#
+# loader = ImageLoader(images_path)
 # extractor.extract_faces(loader, save_path)
 
-test_file = "./results/embeddings/test.txt"
-# model_path = "./models/facenet_keras.h5"
-# faces_path = "./results/extraction"
-#
-# embedder = FaceNetEmbedder(model_path)
-# loader = ImageLoader(faces_path, preprocess_image_facenet)
-#
-# embedder.create_embeddings(loader, test_file)
+test_system = TestSystem()
 
+algorithms = [MeanShiftAlgorithm({"bandwidth": 11})]
+test_system.test_clustering(algorithms)
 
-cluster_test = ImageClusterer(test_file)
-algorithm_test = DbscanAlgorithm()
-
-result = cluster_test.cluster_images(algorithm_test)
-
-save_path = "./results/clustered"
-sort_images(result, save_path)
+# params_range = {"bandwidth": range(1, 101, 1)}
+#test_system.test_clustering_with_optimal_params(MeanShiftAlgorithm, params_range)

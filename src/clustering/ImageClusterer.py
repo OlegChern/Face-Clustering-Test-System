@@ -19,4 +19,4 @@ class ImageClusterer:
         vectors = np.asarray(self.Vectors)
         labels = algorithm.fit_predict(vectors)
 
-        return zip(self.Paths, labels)
+        return list(zip(self.Paths, labels))
