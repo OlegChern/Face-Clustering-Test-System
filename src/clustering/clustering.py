@@ -1,7 +1,6 @@
 import numpy as np
 
 
-# An abstract class for future implementations of face clustering logic
 class ImageClusterer:
     Paths = []
     Vectors = []
@@ -15,8 +14,8 @@ class ImageClusterer:
                 self.Paths.append(path)
                 self.Vectors.append(vector)
 
-    def cluster_images(self, algorithm):
+    def cluster_images(self, algorithm, params_dict=None):
         vectors = np.asarray(self.Vectors)
-        labels = algorithm.fit_predict(vectors)
+        labels = algorithm(vectors, params_dict)
 
         return list(zip(self.Paths, labels))
