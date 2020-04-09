@@ -1,10 +1,11 @@
+import sys
 import datetime
 import logging
 import logging.config
 
 
 class Logger:
-    ConfigDir = "."
+    ConfigDir = "./logs"
     Logger = None
 
     def __init__(self, log_config_dir=ConfigDir):
@@ -40,3 +41,17 @@ class Logger:
 
     def info(self, message):
         self.Logger.info(message)
+
+
+def get_default_logger():
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter('%(asctime)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    return logger

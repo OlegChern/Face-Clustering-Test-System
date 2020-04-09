@@ -2,11 +2,10 @@ from src.utils.image_loader import ImageLoader
 from src.clustering.clustering import ImageClusterer
 from src.clustering.algorithms import optimal_params_grid_search
 from src.utils.utils import sort_images, evaluate_metrics
+from src.test_system.logging import get_default_logger
 from timeit import default_timer
 
 import os
-import sys
-import logging
 
 results_dir = "./results/clustered"
 embeddings_dir = "./results/embeddings/embeddings.txt"
@@ -64,17 +63,3 @@ def evaluate_clustering_algorithm_with_optimal_params(algorithm, params_range, e
         f"Best possible precision is {best_prec} with params {best_params_prec}\n"
         f"Best possible recall is {best_rec} with params {best_params_rec}\n"
         f"best possible f1 score is {best_f1} with params {best_params_f1}")
-
-
-def get_default_logger():
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-
-    formatter = logging.Formatter('%(asctime)s - %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
-    return logger

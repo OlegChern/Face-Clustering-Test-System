@@ -1,6 +1,7 @@
 import numpy as np
 from itertools import product
 from sklearn.cluster import KMeans, DBSCAN, MeanShift
+from sklearn.preprocessing import normalize
 from src.utils.utils import evaluate_metrics
 
 
@@ -32,6 +33,37 @@ def cluster_mean_shift(vectors, params_dict=None):
     evaluator = MeanShift(bandwidth=params_dict["bandwidth"])
 
     return evaluator.fit_predict(vectors)
+
+
+def cluster_threshold(vectors, params_dict):
+    vectors = np.asarray(vectors)
+
+    if params_dict is None:
+        params_dict = {"threshold": 11.81}
+
+    labels = []
+    clusters = {}
+    threshold = params_dict["threshold"]
+    latest_cluster = 0
+
+    for vector in vectors:
+        added = False
+        for cluster in clusters.keys():
+            for labeled in clusters[cluster]:
+                if np.linalg.norm(vector - labeled) <= threshold:
+                    labels.append(cluster)
+                    clusters[cluster].append(vector)
+                    added = True
+                    break
+
+            if added:
+                break
+        else:
+            clusters.update({latest_cluster: [vector]})
+            labels.append(latest_cluster)
+            latest_cluster += 1
+
+    return labels
 
 
 def optimal_params_grid_search(clusterer, algorithm, params_range):
