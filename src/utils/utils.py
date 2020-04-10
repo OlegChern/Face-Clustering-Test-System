@@ -1,5 +1,22 @@
 import os
 import shutil
+import numpy as np
+
+
+def find_euclidean_distance(source_representation, test_representation):
+    euclidean_distance = source_representation - test_representation
+    euclidean_distance = np.sum(np.multiply(euclidean_distance, euclidean_distance))
+    euclidean_distance = np.sqrt(euclidean_distance)
+
+    return euclidean_distance
+
+
+def find_cosine_similarity(considered_representation, other_representations):
+    return np.sum(other_representations * considered_representation, axis=1)
+
+
+def l2_normalize(x):
+    return x / np.sqrt(np.sum(np.multiply(x, x)))
 
 
 def sort_images(labeled_names, save_path):
@@ -28,7 +45,7 @@ def extract_person_name(labeled_image):
 
 
 def evaluate_metrics(labeled_images):
-    labeled_images = map(extract_person_name, labeled_images)
+    labeled_images = list(map(extract_person_name, labeled_images))
 
     true_positive = 0
     false_negative = 0
@@ -55,4 +72,3 @@ def evaluate_metrics(labeled_images):
     f1 = 2 * (precision * recall) / (precision + recall)
 
     return precision, recall, f1
-

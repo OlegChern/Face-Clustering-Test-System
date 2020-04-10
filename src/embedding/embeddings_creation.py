@@ -1,8 +1,10 @@
 import cv2
+
 from tensorflow import keras
 from numpy import asarray, expand_dims
+from src.utils.utils import l2_normalize
 
-facenet_dir = "./models/facenet_keras.h5"
+facenet_hiroki_dir = "./models/facenet_hiroki_taniai/facenet_keras.h5"
 
 
 def facenet_preprocess_image(image):
@@ -19,19 +21,23 @@ def facenet_preprocess_image(image):
     return samples
 
 
-def facenet_create_embeddings(loader, save_path, model_path=facenet_dir):
+# https://github.com/nyoki-mtl/keras-facenet
+def facenet_create_embeddings(loader, save_path, model_path=facenet_hiroki_dir):
     model = keras.models.load_model(model_path)
     save_path = save_path.replace("\\", "/")
 
     with open(save_path, "w") as file:
+        max = 0
         for image, image_path in loader.next_image():
             samples = facenet_preprocess_image(image)
             result = model.predict(samples)
 
-            embedding = str(result[0])
+            embedding = l2_normalize(result[0])
+            embedding = str(embedding)
             embedding = embedding.replace("\n", "")
             embedding = embedding.replace("[", "")
             embedding = embedding.replace("]", "")
 
             result_string = f"{image_path}\t{embedding}\n"
             file.write(result_string)
+        print(max)
