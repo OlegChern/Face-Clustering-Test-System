@@ -30,7 +30,7 @@ def cluster_dbscan(vectors, params_dict=None):
 def cluster_mean_shift(vectors, params_dict=None):
     vectors = np.asarray(vectors)
     if params_dict is None:
-        params_dict = {"bandwidth": 0.9}
+        params_dict = {"bandwidth": 6.3}
 
     evaluator = MeanShift(bandwidth=params_dict["bandwidth"])
 
@@ -38,10 +38,9 @@ def cluster_mean_shift(vectors, params_dict=None):
 
 
 def cluster_threshold(vectors, params_dict):
-    vectors = np.asarray(vectors)
 
     if params_dict is None:
-        params_dict = {"threshold": 0.94}
+        params_dict = {"threshold": 0.15}
 
     labels = []
     clusters = {}
