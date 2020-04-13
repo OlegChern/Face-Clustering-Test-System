@@ -8,7 +8,6 @@ from src.utils.utils import evaluate_metrics, find_euclidean_distance, find_cosi
 
 
 def cluster_kmeans(vectors, params_dict=None):
-    vectors = np.asarray(vectors)
     if params_dict is None:
         params_dict = {"clusters": 4, "random_state": 170}
 
@@ -18,7 +17,6 @@ def cluster_kmeans(vectors, params_dict=None):
 
 
 def cluster_dbscan(vectors, params_dict=None):
-    vectors = np.asarray(vectors)
     if params_dict is None:
         params_dict = {"eps": 1, "min_samples": 1}
 
@@ -28,7 +26,6 @@ def cluster_dbscan(vectors, params_dict=None):
 
 
 def cluster_mean_shift(vectors, params_dict=None):
-    vectors = np.asarray(vectors)
     if params_dict is None:
         params_dict = {"bandwidth": 6.3}
 
@@ -38,7 +35,6 @@ def cluster_mean_shift(vectors, params_dict=None):
 
 
 def cluster_threshold(vectors, params_dict):
-
     if params_dict is None:
         params_dict = {"threshold": 0.15}
 
@@ -69,18 +65,6 @@ def cluster_threshold(vectors, params_dict):
 
 # https://github.com/zhly0/facenet-face-cluster-chinese-whispers-/
 def chinese_whisperers(encodings, params_dict=None):
-    """ Chinese Whispers Algorithm
-    Modified from Alex Loveless' implementation,
-    http://alexloveless.co.uk/data/chinese-whispers-graph-clustering-in-python/
-    Inputs:
-        encoding_list: a list of facial encodings from face_recognition
-        threshold: facial match threshold,default 0.6
-        iterations: since chinese whispers is an iterative algorithm, number of times to iterate
-    Outputs:
-        sorted_clusters: a list of clusters, a cluster being a list of imagepaths,
-            sorted by largest cluster to smallest
-    """
-
     if params_dict is None:
         params_dict = {"threshold": 0.18, "iterations": 5}
 
