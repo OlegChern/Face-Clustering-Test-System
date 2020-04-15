@@ -5,7 +5,7 @@ import logging.config
 
 
 class Logger:
-    ConfigDir = "./logs"
+    ConfigDir = "../logs"
     Logger = None
 
     def __init__(self, log_config_dir=ConfigDir):
@@ -37,7 +37,6 @@ class Logger:
 
         logging.config.dictConfig(dictLogConfig)
         self.Logger = logging.getLogger("TestSystem")
-        self.Logger.info("Logging Started")
 
     def info(self, message):
         self.Logger.info(message)

@@ -1,15 +1,14 @@
-from src.utils.image_loader import ImageLoader
+from src.image_processing.image_loader import ImageLoader
 from src.clustering.clustering import ImageClusterer
-from src.clustering.algorithms import optimal_params_grid_search
-from src.utils.utils import sort_images, evaluate_metrics
+from src.clustering.utils import sort_images, evaluate_metrics, optimal_params_grid_search
 from src.test_system.logging import get_default_logger
 from src.embedding.embeddings_creation import facenet_create_embeddings
 from timeit import default_timer
 
 import os
 
-results_dir = "./results/clustered"
-embeddings_dir = "./results/embeddings/embeddings.txt"
+results_dir = "../results/clustered"
+embeddings_dir = "../results/embeddings/embeddings.txt"
 
 
 def evaluate_facenet(model, path_to_faces, path_to_embeddings=embeddings_dir, logger=None):

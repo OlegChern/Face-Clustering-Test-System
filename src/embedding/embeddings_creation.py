@@ -2,11 +2,11 @@ import cv2
 
 from tensorflow import keras
 from numpy import asarray, expand_dims
-from src.utils.utils import l2_normalize
+from src.clustering.utils import l2_normalize
 from src.embedding.inception_resnet_v1 import InceptionResNetV1
 
-facenet_taniai_model = "./models/facenet_hiroki_taniai/facenet_keras.h5"
-facenet_sandberg_model = "./models/facenet_david_sandberg/facenet_weights.h5"
+facenet_taniai_model = "../models/facenet_hiroki_taniai/facenet_keras.h5"
+facenet_sandberg_model = "../models/facenet_david_sandberg/facenet_weights.h5"
 
 
 def facenet_preprocess_image(image):
