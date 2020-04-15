@@ -25,16 +25,24 @@ def evaluate_facenet(model, path_to_faces, path_to_embeddings=embeddings_dir, lo
     logger.info(f"Embedding creation time is {end_time - start_time}s")
 
 
-def evaluate_clustering_algorithms(algorithms_dict, embedding_path=embeddings_dir, results_path=results_dir,
-                                   logger=None):
+def evaluate_clustering_algorithms(algorithms_params_dict, embedding_path=embeddings_dir, results_path=results_dir,
+                                   metric="f1", logger=None):
     if logger is None:
         logger = get_default_logger()
 
     clusterer = ImageClusterer(embedding_path)
 
-    for name, algorithm in algorithms_dict.items():
+    for name, (algorithm, params_range) in algorithms_params_dict.items():
+        _, best_params_prec, _, best_params_rec, _, best_params_f1 = optimal_params_grid_search(
+            clusterer, algorithm, params_range)
+
+        params = dict()
+        params.update({"f1": best_params_f1})
+        params.update({"recall": best_params_rec})
+        params.update({"precision": best_params_prec})
+
         start_time = default_timer()
-        results = clusterer.cluster_images(algorithm)
+        results = clusterer.cluster_images(algorithm, params_dict=params[metric])
         end_time = default_timer()
 
         path = results_path + f"/{name}"
@@ -45,8 +53,10 @@ def evaluate_clustering_algorithms(algorithms_dict, embedding_path=embeddings_di
         prec, rec, f1 = evaluate_metrics(results)
 
         logger.info(
-            f"Algorithm {name} finished working in {end_time - start_time}s "
-            f"with precision {prec}, recall {rec}, f1 {f1}\n")
+            f"Elapsed time for algorithm {name}: {end_time - start_time}s\n"
+            f"Results: precision {prec}, recall {rec}, f1 {f1}\n"
+            f"Maximised metric: {metric}\n"
+            f"Chosen parameters: {params[metric]}")
 
 
 def evaluate_clustering_algorithm_with_optimal_params(algorithm, params_range, embedding_path=embeddings_dir,
