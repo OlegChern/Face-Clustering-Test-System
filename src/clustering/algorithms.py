@@ -2,35 +2,7 @@ import numpy as np
 import networkx as nx
 
 from random import shuffle
-from sklearn.cluster import KMeans, DBSCAN, MeanShift
-from src.clustering.utils import find_euclidean_distance, find_cosine_similarity, find_taxicab_distance
-
-
-def cluster_kmeans(vectors, params_dict=None):
-    if params_dict is None:
-        params_dict = {"clusters": 4, "random_state": 170}
-
-    evaluator = KMeans(n_clusters=params_dict["clusters"], random_state=params_dict["random_state"])
-
-    return evaluator.fit_predict(vectors)
-
-
-def cluster_dbscan(vectors, params_dict=None):
-    if params_dict is None:
-        params_dict = {"eps": 1, "min_samples": 1, "metric": find_euclidean_distance}
-
-    evaluator = DBSCAN(eps=params_dict["eps"], min_samples=params_dict["min_samples"], metric=params_dict["metric"])
-
-    return evaluator.fit_predict(vectors)
-
-
-def cluster_mean_shift(vectors, params_dict=None):
-    if params_dict is None:
-        params_dict = {"bandwidth": 6.3}
-
-    evaluator = MeanShift(bandwidth=params_dict["bandwidth"])
-
-    return evaluator.fit_predict(vectors)
+from src.clustering.utils import find_euclidean_distance, find_cosine_similarity
 
 
 def cluster_threshold(vectors, params_dict):
@@ -130,5 +102,3 @@ def chinese_whisperers(encodings, params_dict=None):
         clusters[path] = cluster
 
     return clusters
-
-
