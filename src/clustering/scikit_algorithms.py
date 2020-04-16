@@ -1,4 +1,5 @@
-from sklearn.cluster import KMeans, DBSCAN, MeanShift, AffinityPropagation, SpectralClustering
+from sklearn.cluster import KMeans, DBSCAN, MeanShift, AffinityPropagation, SpectralClustering, AgglomerativeClustering, \
+    OPTICS
 
 from src.clustering.utils import find_euclidean_distance
 
@@ -44,5 +45,23 @@ def cluster_spectral(vectors, params_dict=None):
         params_dict = {"clusters": 4, "random_state": 170}
 
     evaluator = SpectralClustering(**params_dict)
+
+    return evaluator.fit_predict(vectors)
+
+
+def cluster_agglomerative(vectors, params_dict=None):
+    if params_dict is None:
+        params_dict = {"n_clusters": None, "distance_threshold": 0.6}
+
+    evaluator = AgglomerativeClustering(**params_dict)
+
+    return evaluator.fit_predict(vectors)
+
+
+def cluster_optics(vectors, params_dict=None):
+    if params_dict is None:
+        params_dict = {"min_samples": 5, "metric": find_euclidean_distance}
+
+    evaluator = OPTICS(**params_dict)
 
     return evaluator.fit_predict(vectors)
