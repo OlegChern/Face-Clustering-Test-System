@@ -34,9 +34,9 @@ algorithms = dict()
 distances = [find_euclidean_distance, find_cosine_similarity, find_taxicab_distance]
 #
 
-# chinese_whisperers_range = {"threshold": np.arange(0.01, 10, 0.01), "iterations": range(10, 11),
-#                             "distance": distances}
-# algorithms.update({"Chinese Whisperers": (chinese_whisperers, chinese_whisperers_range)})
+chinese_whisperers_range = {"threshold": np.arange(0.01, 1, 0.01), "iterations": range(10, 11),
+                            "distance": [find_cosine_similarity]}
+algorithms.update({"Chinese Whisperers": (chinese_whisperers, chinese_whisperers_range)})
 
 # mean_shift_range = {"bandwidth": np.arange(0.1, 40, 0.1)}
 # algorithms.update({"Mean Shift": (cluster_mean_shift, mean_shift_range)})

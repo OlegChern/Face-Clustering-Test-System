@@ -43,34 +43,29 @@ def chinese_whisperers(encodings, params_dict=None):
     iterations = params_dict["iterations"]
     distance_func = params_dict["distance"]
 
-    nodes = []
-    edges = []
-
+    nodes, edges = [], []
     indices = range(0, len(encodings))
     for idx, face_encoding_to_check in enumerate(encodings):
         node_id = idx + 1
 
-        node = (node_id, {'cluster': indices[idx], 'path': indices[idx]})
+        node = (node_id, {'cluster': indices[idx], 'vector_num': indices[idx]})
         nodes.append(node)
 
-        if (idx + 1) >= len(encodings):
+        if node_id == len(encodings):
             break
 
-        compare_encodings = encodings[idx + 1:]
+        compare_encodings = encodings[node_id:]
         distances = distance_func(face_encoding_to_check, compare_encodings)
-        encoding_edges = []
         for i, distance in enumerate(distances):
             if distance < threshold:
-                edge_id = idx + i + 2
-                encoding_edges.append((node_id, edge_id, {'weight': distance}))
-
-        edges = edges + encoding_edges
+                edge_id = node_id + i + 1
+                edges.append((node_id, edge_id, {'weight': distance}))
 
     graph = nx.Graph()
     graph.add_nodes_from(nodes)
     graph.add_edges_from(edges)
 
-    for _ in range(0, iterations):
+    for _ in range(iterations):
         cluster_nodes = graph.nodes()
         shuffle(np.array(cluster_nodes))
         for node in cluster_nodes:
@@ -78,11 +73,10 @@ def chinese_whisperers(encodings, params_dict=None):
             clusters = {}
 
             for ne in neighbors:
-                if isinstance(ne, int):
-                    if graph.nodes[ne]['cluster'] in clusters:
-                        clusters[graph.nodes[ne]['cluster']] += graph[node][ne]['weight']
-                    else:
-                        clusters[graph.nodes[ne]['cluster']] = graph[node][ne]['weight']
+                if graph.nodes[ne]['cluster'] in clusters:
+                    clusters[graph.nodes[ne]['cluster']] += graph[node][ne]['weight']
+                else:
+                    clusters[graph.nodes[ne]['cluster']] = graph[node][ne]['weight']
 
             edge_weight_sum = 0
             max_cluster = 0
@@ -94,11 +88,10 @@ def chinese_whisperers(encodings, params_dict=None):
             graph.nodes[node]['cluster'] = max_cluster
 
     clusters = [0 for _ in range(len(encodings))]
-
     for (_, data) in graph.nodes.items():
         cluster = data['cluster']
-        path = data['path']
+        vector_num = data['vector_num']
 
-        clusters[path] = cluster
+        clusters[vector_num] = cluster
 
     return clusters
