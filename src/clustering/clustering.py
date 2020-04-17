@@ -1,11 +1,13 @@
 import numpy as np
 
+from src.clustering.utils import l2_normalize
+
 
 class ImageClusterer:
     Paths = []
     Vectors = []
 
-    def __init__(self, embedding_path):
+    def __init__(self, embedding_path, normalize=False):
         with open(embedding_path, "r") as embeddings:
             for line in embeddings.readlines():
                 path, vector_str = line.split("\t")
@@ -14,8 +16,11 @@ class ImageClusterer:
                 self.Paths.append(path)
                 self.Vectors.append(vector)
 
+        self.Vectors = np.asarray(self.Vectors)
+        if normalize:
+            self.Vectors = l2_normalize(self.Vectors)
+
     def cluster_images(self, algorithm, params_dict=None):
-        vectors = np.asarray(self.Vectors)
-        labels = algorithm(vectors, params_dict)
+        labels = algorithm(self.Vectors, params_dict)
 
         return list(zip(self.Paths, labels))

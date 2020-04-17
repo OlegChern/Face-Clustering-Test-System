@@ -42,8 +42,8 @@ class Logger:
         self.Logger.info(message)
 
 
-def get_default_logger():
-    logger = logging.getLogger()
+def get_default_logger(name="Default"):
+    logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
 
     handler = logging.StreamHandler(sys.stdout)

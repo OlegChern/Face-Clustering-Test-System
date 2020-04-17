@@ -2,23 +2,23 @@ from src.image_processing.image_loader import ImageLoader
 from src.clustering.clustering import ImageClusterer
 from src.clustering.utils import sort_images, evaluate_metrics, optimal_params_grid_search
 from src.test_system.logging import get_default_logger
-from src.embedding.embeddings_creation import facenet_create_embeddings
+from src.embedding.embeddings_creation import create_embeddings
 from timeit import default_timer
 
 import os
 
-results_dir = "../results/clustered"
-embeddings_dir = "../results/embeddings/embeddings.txt"
+results_dir = "./results/clustered"
+embeddings_dir = "./results/embeddings/embeddings.txt"
 
 
-def evaluate_facenet(model, path_to_faces, path_to_embeddings=embeddings_dir, logger=None):
+def evaluate_embedder(model, target_image_size, path_to_faces, path_to_embeddings=embeddings_dir, logger=None):
     if logger is None:
-        logger = get_default_logger()
+        logger = get_default_logger("Embedding")
 
     loader = ImageLoader(path_to_faces)
 
     start_time = default_timer()
-    facenet_create_embeddings(loader, path_to_embeddings, model)
+    create_embeddings(loader, path_to_embeddings, model, target_image_size)
     end_time = default_timer()
 
     logger.info(f"Embedding creation time is {end_time - start_time}s")
@@ -27,7 +27,7 @@ def evaluate_facenet(model, path_to_faces, path_to_embeddings=embeddings_dir, lo
 def evaluate_clustering_algorithms(algorithms_params_dict, embedding_path=embeddings_dir, results_path=results_dir,
                                    metric="f1", logger=None):
     if logger is None:
-        logger = get_default_logger()
+        logger = get_default_logger("Clustering")
 
     clusterer = ImageClusterer(embedding_path)
 

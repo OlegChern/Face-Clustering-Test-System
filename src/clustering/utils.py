@@ -33,7 +33,7 @@ def find_taxicab_distance(considered_representation, other_representations):
 
 
 def l2_normalize(x):
-    return x / np.sqrt(np.sum(np.multiply(x, x)))
+    return x / np.sqrt(np.sum(np.multiply(x, x), axis=x.ndim - 1))[:, None]
 
 
 def evaluate_metrics(labeled_images):

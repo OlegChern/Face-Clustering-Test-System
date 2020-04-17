@@ -1,8 +1,8 @@
 from src.image_processing.image_loader import ImageLoader
 from src.extraction.mtcnn_face_extraction import extract_faces_mtcnn
-from src.test_system.evaluation import evaluate_facenet, evaluate_clustering_algorithms, \
+from src.test_system.evaluation import evaluate_embedder, evaluate_clustering_algorithms, \
     evaluate_clustering_algorithm_with_optimal_params
-from src.embedding.embeddings_creation import load_sandberg_model, load_taniai_model
+from src.embedding.embeddings_creation import load_sandberg_model, load_taniai_model, load_openface_model
 from src.clustering.algorithms import cluster_threshold, \
     chinese_whisperers
 from src.clustering.scikit_algorithms import cluster_kmeans, cluster_dbscan, cluster_mean_shift, \
@@ -12,9 +12,9 @@ from src.clustering.utils import find_taxicab_distance, find_cosine_similarity, 
 
 import numpy as np
 
-embedding_file = "../results/embeddings/embeddings.txt"
-save_path = "../results/extraction"
-images_path = "../images"
+embedding_file = "./results/embeddings/embeddings.txt"
+save_path = "./results/extraction"
+images_path = "./images"
 
 # logger = Logger()
 #
@@ -26,21 +26,24 @@ images_path = "../images"
 # evaluate_facenet(load_sandberg_model(), save_path)
 # evaluate_facenet(load_taniai_model(), save_path)
 
+model, image_size = load_openface_model()
+# model, image_size = load_sandberg_model()
+
+evaluate_embedder(model, image_size, save_path)
+
 algorithms = dict()
-#
-# threshold_range = {"threshold": np.arange(0, 10, 0.01)}
-# algorithms.update({"Threshold Clustering": (cluster_threshold, threshold_range)})
-#
 distances = [find_euclidean_distance, find_cosine_similarity, find_taxicab_distance]
-#
+
+# threshold_range = {"threshold": np.arange(-10, 10, 0.01), "distance": distances}
+# algorithms.update({"Threshold Clustering": (cluster_threshold, threshold_range)})
 
 chinese_whisperers_range = {"threshold": np.arange(0.01, 1, 0.01), "iterations": range(10, 11),
                             "distance": [find_cosine_similarity]}
 algorithms.update({"Chinese Whisperers": (chinese_whisperers, chinese_whisperers_range)})
-
+#
 # mean_shift_range = {"bandwidth": np.arange(0.1, 40, 0.1)}
 # algorithms.update({"Mean Shift": (cluster_mean_shift, mean_shift_range)})
-#
+# #
 # dbscan_range = {"eps": range(1, 30), "min_samples": range(1, 5), "metric": distances}
 # algorithms.update({"DBSCAN": (cluster_dbscan, dbscan_range)})
 #

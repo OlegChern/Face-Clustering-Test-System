@@ -7,18 +7,19 @@ from src.clustering.utils import find_euclidean_distance, find_cosine_similarity
 
 def cluster_threshold(vectors, params_dict):
     if params_dict is None:
-        params_dict = {"threshold": 0.15}
+        params_dict = {"threshold": 0.15, "distance": find_euclidean_distance}
 
     labels = []
     clusters = {}
     threshold = params_dict["threshold"]
+    distance_func = params_dict["distance"]
     latest_cluster = 0
 
     for vector in vectors:
         added = False
         for cluster in clusters.keys():
             for labeled in clusters[cluster]:
-                if find_euclidean_distance(vector, labeled) <= threshold:
+                if distance_func(vector, labeled) <= threshold:
                     labels.append(cluster)
                     clusters[cluster].append(vector)
                     added = True
