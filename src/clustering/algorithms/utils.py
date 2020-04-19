@@ -92,7 +92,7 @@ def optimal_params_grid_search(clusterer, algorithm, params_range):
             best_f1 = f1
             best_params_f1 = cur_dict
 
-    return best_prec, best_params_prec, best_rec, best_params_rec, best_f1, best_params_f1
+    return best_params_prec, best_params_rec, best_params_f1
 
 
 def extract_person_name(labeled_image):

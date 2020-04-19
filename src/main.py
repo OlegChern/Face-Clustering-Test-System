@@ -1,20 +1,17 @@
-from src.image_processing.image_loader import ImageLoader
-from src.extraction.mtcnn_face_extraction import extract_faces_mtcnn
-from src.test_system.evaluation import evaluate_embedder, evaluate_clustering_algorithms, \
-    evaluate_clustering_algorithm_with_optimal_params
-from src.embedding.embeddings_creation import load_sandberg_model, load_taniai_model, load_openface_model
-from src.clustering.algorithms import cluster_threshold, \
-    chinese_whisperers
-from src.clustering.scikit_algorithms import cluster_kmeans, cluster_dbscan, cluster_mean_shift, \
-    cluster_affinity_propagation, cluster_spectral, cluster_agglomerative, cluster_optics
-from src.test_system.logging import Logger
-from src.clustering.utils import find_taxicab_distance, find_cosine_similarity, find_euclidean_distance
+from src.test_system.evaluation import evaluate_embeddings_creator, evaluate_clustering_algorithms
+from src.embedding.models.open_face import OpenFace
+from src.clustering.algorithms.algorithms import chinese_whisperers
+from src.clustering.algorithms.utils import find_taxicab_distance, find_cosine_similarity, find_euclidean_distance
 
 import numpy as np
 
 embedding_file = "./results/embeddings/embeddings.txt"
 save_path = "./results/extraction"
 images_path = "./images"
+
+facenet_sandberg_model = "./models/facenet_david_sandberg/facenet_weights.h5"
+facenet_hiroki_weights = "./models/facenet_hiroki_taniai/facenet_hiroki_weights.h5"
+openface_weights = "./models/open_face/openface_weights.h5"
 
 # logger = Logger()
 #
@@ -26,15 +23,17 @@ images_path = "./images"
 # evaluate_facenet(load_sandberg_model(), save_path)
 # evaluate_facenet(load_taniai_model(), save_path)
 
-model, image_size = load_openface_model()
+# model, image_size = load_openface_model()
 # model, image_size = load_sandberg_model()
 
-evaluate_embedder(model, image_size, save_path)
+# model = FaceNet(facenet_hiroki_weights)
+model = OpenFace(openface_weights)
+evaluate_embeddings_creator(model, save_path)
 
 algorithms = dict()
 distances = [find_euclidean_distance, find_cosine_similarity, find_taxicab_distance]
-
-# threshold_range = {"threshold": np.arange(-10, 10, 0.01), "distance": distances}
+#
+# threshold_range = {"threshold": np.arange(0, 10, 0.01), "distance": distances}
 # algorithms.update({"Threshold Clustering": (cluster_threshold, threshold_range)})
 
 chinese_whisperers_range = {"threshold": np.arange(0.01, 1, 0.01), "iterations": range(10, 11),

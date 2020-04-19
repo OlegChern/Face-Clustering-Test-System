@@ -2,7 +2,7 @@ import numpy as np
 import networkx as nx
 
 from random import shuffle
-from src.clustering.utils import find_euclidean_distance, find_cosine_similarity
+from src.clustering.algorithms.utils import find_euclidean_distance, find_cosine_similarity
 
 
 def cluster_threshold(vectors, params_dict):

@@ -1,7 +1,7 @@
 from sklearn.cluster import KMeans, DBSCAN, MeanShift, AffinityPropagation, SpectralClustering, AgglomerativeClustering, \
     OPTICS
 
-from src.clustering.utils import find_euclidean_distance
+from src.clustering.algorithms.utils import find_euclidean_distance
 
 
 def cluster_kmeans(vectors, params_dict=None):

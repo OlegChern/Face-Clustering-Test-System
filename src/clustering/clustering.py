@@ -1,11 +1,11 @@
 import numpy as np
 
-from src.clustering.utils import l2_normalize
+from src.clustering.algorithms.utils import l2_normalize
 
 
-class ImageClusterer:
-    Paths = []
+class ImageClusteringUnit:
     Vectors = []
+    Paths = []
 
     def __init__(self, embedding_path, normalize=False):
         with open(embedding_path, "r") as embeddings:
