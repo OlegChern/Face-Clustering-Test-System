@@ -1,13 +1,16 @@
 from src.test_system.evaluation import evaluate_embeddings_creator, evaluate_clustering_algorithms
 from src.embedding.models.open_face import OpenFace
+from src.embedding.models.face_net import FaceNet
 from src.clustering.algorithms.algorithms import chinese_whisperers
 from src.clustering.algorithms.utils import find_taxicab_distance, find_cosine_similarity, find_euclidean_distance
+from src.test_system.logging import get_file_logger
 
 import numpy as np
 
 embedding_file = "./results/embeddings/embeddings.txt"
 save_path = "./results/extraction"
 images_path = "./images"
+sorted_path = "./results/clustered"
 
 facenet_sandberg_model = "./models/facenet_david_sandberg/facenet_weights.h5"
 facenet_hiroki_weights = "./models/facenet_hiroki_taniai/facenet_hiroki_weights.h5"
@@ -26,9 +29,13 @@ openface_weights = "./models/open_face/openface_weights.h5"
 # model, image_size = load_openface_model()
 # model, image_size = load_sandberg_model()
 
-# model = FaceNet(facenet_hiroki_weights)
-model = OpenFace(openface_weights)
-evaluate_embeddings_creator(model, save_path)
+logger = get_file_logger()
+
+facenet_model = FaceNet(facenet_hiroki_weights)
+facenet_file = "./results/embeddings/embeddings.txt"
+models = {facenet_model: facenet_file}
+# model = OpenFace(openface_weights)
+evaluate_embeddings_creator(models, save_path, logger=logger)
 
 algorithms = dict()
 distances = [find_euclidean_distance, find_cosine_similarity, find_taxicab_distance]
@@ -62,4 +69,4 @@ algorithms.update({"Chinese Whisperers": (chinese_whisperers, chinese_whisperers
 # algorithms.update({"OPTICS": (cluster_optics, optics_range)})
 
 
-evaluate_clustering_algorithms(algorithms)
+evaluate_clustering_algorithms(algorithms, embedding_path=embedding_file, results_path=sorted_path, logger=logger)

@@ -16,7 +16,7 @@ def evaluate_embeddings_creator(models, path_to_faces, logger=None):
     if logger is None:
         logger = get_default_logger("Embedding")
 
-    for model, path in models.items:
+    for model, path in models.items():
         embeddings_creator = ImageEmbeddingsCreator(path_to_faces)
 
         start_time = default_timer()

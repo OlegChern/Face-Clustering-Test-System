@@ -4,42 +4,36 @@ import logging
 import logging.config
 
 
-class Logger:
-    ConfigDir = "../logs"
-    Logger = None
+def get_file_logger(log_config_dir="./logs"):
+    current_date = datetime.datetime.now()
+    current_date = current_date.strftime("%Y-%m-%d")
 
-    def __init__(self, log_config_dir=ConfigDir):
-        current_date = datetime.datetime.now()
-        current_date = current_date.strftime("%Y-%m-%d")
-
-        dictLogConfig = {
-            "version": 1,
-            "handlers": {
-                "fileHandler": {
-                    "class": "logging.FileHandler",
-                    "formatter": "myFormatter",
-                    "filename": f"{log_config_dir}/{current_date}.log"
-                }
-            },
-            "loggers": {
-                "TestSystem": {
-                    "handlers": ["fileHandler"],
-                    "level": "INFO",
-                }
-            },
-            "formatters": {
-                "myFormatter": {
-                    "format": "%(asctime)s - %(message)s",
-                    "datefmt": "%Y-%m-%d %H:%M:%S"
-                }
+    dict_log_config = {
+        "version": 1,
+        "handlers": {
+            "fileHandler": {
+                "class": "logging.FileHandler",
+                "formatter": "myFormatter",
+                "filename": f"{log_config_dir}/{current_date}.log"
+            }
+        },
+        "loggers": {
+            "TestSystem": {
+                "handlers": ["fileHandler"],
+                "level": "INFO",
+            }
+        },
+        "formatters": {
+            "myFormatter": {
+                "format": "%(asctime)s\n%(message)s\n",
+                "datefmt": "%Y-%m-%d %H:%M:%S"
             }
         }
+    }
 
-        logging.config.dictConfig(dictLogConfig)
-        self.Logger = logging.getLogger("TestSystem")
+    logging.config.dictConfig(dict_log_config)
 
-    def info(self, message):
-        self.Logger.info(message)
+    return logging.getLogger("TestSystem")
 
 
 def get_default_logger(name="Default"):
