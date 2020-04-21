@@ -1,13 +1,13 @@
 import numpy as np
 
-from src.clustering.algorithms.utils import l2_normalize
+from src.image_processing.utils import l2_normalize
 
 
 class ImageClusteringUnit:
     Vectors = []
     Paths = []
 
-    def __init__(self, embedding_path, normalize=False):
+    def __init__(self, embedding_path, normalize=True):
         with open(embedding_path, "r") as embeddings:
             for line in embeddings.readlines():
                 path, vector_str = line.split("\t")
