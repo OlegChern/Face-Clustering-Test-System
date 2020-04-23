@@ -1,13 +1,9 @@
-# This is an implementation of https://arxiv.org/pdf/1604.00989.pdf, a modified
-# version of rank-order clustering.
+# This is an implementation of https://arxiv.org/pdf/1604.00989.pdf, a modified version of rank-order clustering.
 
 import pyflann
 import numpy as np
 from time import time
-# from profilehooks import profile
-from multiprocessing import Pool
 from functools import partial
-import json
 
 
 def build_index(dataset, n_neighbors):
@@ -17,13 +13,9 @@ def build_index(dataset, n_neighbors):
     # Initialize FLANN
     pyflann.set_distance_type(distance_type='euclidean')
     flann = pyflann.FLANN()
-    params = flann.build_index(dataset,
-                               algorithm='kdtree',
-                               trees=4
-                               )
+    params = flann.build_index(dataset, algorithm='kdtree', trees=4)
     # print params
-    nearest_neighbors, dists = flann.nn_index(dataset, n_neighbors,
-                                              checks=params['checks'])
+    nearest_neighbors, dists = flann.nn_index(dataset, n_neighbors, hecks=params['checks'])
 
     return nearest_neighbors, dists
 
@@ -39,7 +31,6 @@ def create_neighbor_lookup(nearest_neighbors):
     return nn_lookup
 
 
-# @profile
 def calculate_symmetric_dist_row(nearest_neighbors, nn_lookup, row_no):
     """
     This function calculates the symmetric distances for one row in the
@@ -47,14 +38,13 @@ def calculate_symmetric_dist_row(nearest_neighbors, nn_lookup, row_no):
     """
     dist_row = np.zeros([1, nearest_neighbors.shape[1]])
     f1 = nn_lookup[row_no]
-    # print "f1 : ", f1
+
     for idx, neighbor in enumerate(f1[1:]):
         Oi = idx + 1
         co_neighbor = True
         try:
             row = nn_lookup[neighbor]
             Oj = np.where(row == row_no)[0][0] + 1
-            # print 'Correct Oj: {}'.format(Oj)
         except IndexError:
             Oj = nearest_neighbors.shape[1] + 1
             co_neighbor = False
@@ -84,16 +74,15 @@ def calculate_symmetric_dist(app_nearest_neighbors):
     """
     This function calculates the symmetric distance matrix.
     """
-    dist_calc_time = time()
     nn_lookup = create_neighbor_lookup(app_nearest_neighbors)
     d = np.zeros(app_nearest_neighbors.shape)
-    # p = Pool(processes=1)
+
     func = partial(calculate_symmetric_dist_row, app_nearest_neighbors, nn_lookup)
     results = map(func, range(app_nearest_neighbors.shape[0]))
+
     for row_no, row_val in enumerate(results):
         d[row_no, :] = row_val
-    d_time = time() - dist_calc_time
-    print("Distance calculation time : {}".format(d_time))
+
     return d
 
 
@@ -108,10 +97,7 @@ def aro_clustering(app_nearest_neighbors, distance_matrix, thresh):
     nodes = set(list(np.arange(0, distance_matrix.shape[0])))
     # print 'Nodes initial : {}'.format(nodes)
     tc = time()
-    plausible_neighbors = create_plausible_neighbor_lookup(
-        app_nearest_neighbors,
-        distance_matrix,
-        thresh)
+    plausible_neighbors = create_plausible_neighbor_lookup(app_nearest_neighbors, distance_matrix, thresh)
     # print 'Time to create plausible_neighbors lookup : {}'.format(time()-tc)
     ctime = time()
     while nodes:
@@ -147,9 +133,7 @@ def aro_clustering(app_nearest_neighbors, distance_matrix, thresh):
     return clusters
 
 
-def create_plausible_neighbor_lookup(app_nearest_neighbors,
-                                     distance_matrix,
-                                     thresh):
+def create_plausible_neighbor_lookup(app_nearest_neighbors, distance_matrix, thresh):
     """
     Create a dictionary where the keys are the row numbers(face numbers) and
     the values are the plausible neighbors.
@@ -159,57 +143,28 @@ def create_plausible_neighbor_lookup(app_nearest_neighbors,
     for i in range(n_vectors):
         plausible_neighbors[i] = set(list(app_nearest_neighbors[i, np.where(distance_matrix[i, :] <= thresh)][0]))
 
-        # min_dist = np.min(distance_matrix[i, 1:])
-        # if min_dist <= thresh:
-        #     nn_indices = np.where(distance_matrix[i, :] == min_dist)
-        #     old_nn_row = app_nearest_neighbors[i, :]
-        #     plausible_neighbors[i] = set(list(old_nn_row[nn_indices]))
-        # else:
-        #     plausible_neighbors[i] = set([])
     return plausible_neighbors
 
 
-def cluster(descriptor_matrix, params_dict=None):
+def cluster_app_rank_order(descriptor_matrix, params_dict=None):
     """
     Master function. Takes the descriptor matrix and returns clusters.
     n_neighbors are the number of nearest neighbors considered and thresh
     is the clustering distance threshold
     """
     if params_dict is None:
-        params_dict = {"n_neighbors": 10, "threshold": [2]}
+        params_dict = {"n_neighbors": 10, "threshold": 2}
 
     n_neighbors = params_dict["n_neighbors"]
-    thresh = params_dict["threshold"]
+    threshold = params_dict["threshold"]
 
     app_nearest_neighbors, dists = build_index(descriptor_matrix, n_neighbors)
     distance_matrix = calculate_symmetric_dist(app_nearest_neighbors)
-    clusters = []
-    for th in thresh:
-        clusters_th = aro_clustering(app_nearest_neighbors, distance_matrix, th)
-        print("N Clusters: {}, thresh: {}".format(len(clusters_th), th))
-        clusters.append({'clusters': clusters_th, 'threshold': th})
+    clusters_th = aro_clustering(app_nearest_neighbors, distance_matrix, threshold)
 
     labels = [0 for _ in range(len(descriptor_matrix))]
-    for idx, cluster in enumerate(clusters[0]["clusters"]):
+    for idx, cluster in enumerate(clusters_th):
         for image_idx in cluster:
             labels[image_idx] = idx
 
     return labels
-
-
-# if __name__ == '__main__':
-#     descriptor_matrix = np.random.rand(20, 10)
-#     app_nearest_neighbors, dists = build_index(descriptor_matrix, n_neighbors=2)
-#     distance_matrix = calculate_symmetric_dist(app_nearest_neighbors)
-#     clusters = cluster(descriptor_matrix, n_neighbors=2)
-#     # print clusters[0]
-#     clusters_to_be_saved = {}
-#     for i, cluster in enumerate(clusters[0]["clusters"]):
-#         c = [int(x) for x in list(cluster)]
-#         clusters_to_be_saved[i] = c
-#     with open("clusters.json", "w") as f:
-#         json.dump(clusters_to_be_saved, f)
-#     # n_faces = 0
-#     # for c in clusters:
-#     #     n_faces += len(c)
-#     # print clusters
