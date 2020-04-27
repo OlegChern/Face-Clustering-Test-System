@@ -26,10 +26,12 @@ class DeepFace:
 
     def preprocess_input(self, image):
         image = cv2.resize(image, self.InputSize)
+        # image = image[:,:,::-1]
+        # image = cv2.transpose(image, (2, 0, 1))
         pixels = img_to_array(image)
 
         samples = np.expand_dims(pixels, axis=0)
-        samples /= 255
+        samples /= 255.0
 
         return samples
 
