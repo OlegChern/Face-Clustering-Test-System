@@ -2,7 +2,6 @@
 
 import pyflann
 import numpy as np
-from time import time
 from functools import partial
 
 
@@ -14,8 +13,8 @@ def build_index(dataset, n_neighbors):
     pyflann.set_distance_type(distance_type='euclidean')
     flann = pyflann.FLANN()
     params = flann.build_index(dataset, algorithm='kdtree', trees=4)
-    # print params
-    nearest_neighbors, dists = flann.nn_index(dataset, n_neighbors, hecks=params['checks'])
+
+    nearest_neighbors, dists = flann.nn_index(dataset, 30, checks=params['checks'])
 
     return nearest_neighbors, dists
 
@@ -27,7 +26,7 @@ def create_neighbor_lookup(nearest_neighbors):
     nn_lookup = {}
     for i in range(nearest_neighbors.shape[0]):
         nn_lookup[i] = nearest_neighbors[i, :]
-    # print "NN Lookup :",nn_lookup
+
     return nn_lookup
 
 
@@ -58,15 +57,11 @@ def calculate_symmetric_dist_row(nearest_neighbors, nn_lookup, row_no):
         f22 = set(nn_lookup[neighbor][0:Oj])
         dji = len(f22.difference(f12))
 
-        # print 'dij: {}, dji: {}'.format(dij, dji)
-        # print 'Oi: {}, Oj: {}'.format(Oi, Oj)
-
         if not co_neighbor:
             dist_row[0, Oi] = 9999.0
         else:
             dist_row[0, Oi] = float(dij + dji) / min(Oi, Oj)
 
-    # print dist_row
     return dist_row
 
 
@@ -91,15 +86,14 @@ def aro_clustering(app_nearest_neighbors, distance_matrix, thresh):
     Approximate rank-order clustering. Takes in the nearest neighbors matrix
     and outputs clusters - list of lists.
     '''
+
     # Clustering :
     clusters = []
+
     # Start with the first face :
     nodes = set(list(np.arange(0, distance_matrix.shape[0])))
-    # print 'Nodes initial : {}'.format(nodes)
-    tc = time()
     plausible_neighbors = create_plausible_neighbor_lookup(app_nearest_neighbors, distance_matrix, thresh)
-    # print 'Time to create plausible_neighbors lookup : {}'.format(time()-tc)
-    ctime = time()
+
     while nodes:
         # Get a node :
         n = nodes.pop()
@@ -129,7 +123,6 @@ def aro_clustering(app_nearest_neighbors, distance_matrix, thresh):
         # Add the group to the list of groups :
         clusters.append(group)
 
-    # print 'Clustering Time : {}'.format(time()-ctime)
     return clusters
 
 
@@ -146,7 +139,7 @@ def create_plausible_neighbor_lookup(app_nearest_neighbors, distance_matrix, thr
     return plausible_neighbors
 
 
-def cluster_app_rank_order(descriptor_matrix, params_dict=None):
+def cluster_app_rank_order(vectors, params_dict=None):
     """
     Master function. Takes the descriptor matrix and returns clusters.
     n_neighbors are the number of nearest neighbors considered and thresh
@@ -158,11 +151,11 @@ def cluster_app_rank_order(descriptor_matrix, params_dict=None):
     n_neighbors = params_dict["n_neighbors"]
     threshold = params_dict["threshold"]
 
-    app_nearest_neighbors, dists = build_index(descriptor_matrix, n_neighbors)
+    app_nearest_neighbors, dists = build_index(vectors, n_neighbors)
     distance_matrix = calculate_symmetric_dist(app_nearest_neighbors)
     clusters_th = aro_clustering(app_nearest_neighbors, distance_matrix, threshold)
 
-    labels = [0 for _ in range(len(descriptor_matrix))]
+    labels = [0 for _ in range(len(vectors))]
     for idx, cluster in enumerate(clusters_th):
         for image_idx in cluster:
             labels[image_idx] = idx

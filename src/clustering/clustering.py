@@ -7,7 +7,7 @@ class ImageClusteringUnit:
     Vectors = []
     Paths = []
 
-    def __init__(self, embedding_path, normalize=True):
+    def __init__(self, embedding_path, normalize=False):
         with open(embedding_path, "r") as embeddings:
             for line in embeddings.readlines():
                 path, vector_str = line.split("\t")
