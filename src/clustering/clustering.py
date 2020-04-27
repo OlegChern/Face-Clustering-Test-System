@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.image_processing.utils import l2_normalize
+from src.clustering.clustering_utils import l2_normalize
 
 
 class ImageClusteringUnit:

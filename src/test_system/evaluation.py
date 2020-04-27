@@ -1,5 +1,6 @@
 from src.clustering.clustering import ImageClusteringUnit
-from src.image_processing.utils import sort_images, evaluate_metrics, optimal_params_grid_search
+from src.clustering.clustering_utils import evaluate_metrics, optimal_params_grid_search
+from src.image_processing.image_utils import sort_images
 from src.test_system.logging import get_default_logger
 from src.embedding.embeddings_creation import ImageEmbeddingsCreator
 from timeit import default_timer

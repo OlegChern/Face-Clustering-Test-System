@@ -1,19 +1,6 @@
 from src.extraction.mtcnn_face_extraction import extract_faces_mtcnn
 from src.image_processing.image_loader import ImageLoader
-from src.test_system.evaluation import evaluate_embeddings_creator, evaluate_clustering_algorithms
-from src.embedding.models_code.face_net import FaceNet
-from src.embedding.models_code.open_face import OpenFace
-from src.embedding.models_code.vgg_face import FaceVGG
-from src.embedding.models_code.deep_face import DeepFace
-from src.clustering.algorithms.algorithms import chinese_whisperers, cluster_threshold
-from src.clustering.algorithms.scikit_algorithms import cluster_optics, cluster_agglomerative, cluster_spectral, \
-    cluster_affinity_propagation, cluster_dbscan, cluster_mean_shift, cluster_kmeans
-from src.clustering.algorithms.approximate_rank_order import cluster_app_rank_order
-from src.clustering.algorithms.rank_order import cluster_rank_order
-from src.image_processing.utils import find_taxicab_distance, find_cosine_similarity, find_euclidean_distance
-from src.test_system.logging import get_file_logger
-
-import numpy as np
+from src.clustering.clustering_utils import find_taxicab_distance, find_cosine_similarity, find_euclidean_distance
 
 embedding_file = "./results/embeddings/embeddings.txt"
 save_path = "./results/extraction/aligned_3_points"
