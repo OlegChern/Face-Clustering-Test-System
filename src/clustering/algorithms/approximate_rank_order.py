@@ -6,9 +6,6 @@ from functools import partial
 
 
 def build_index(dataset, n_neighbors):
-    """
-    Takes a dataset, returns the "n" nearest neighbors
-    """
     # Initialize FLANN
     pyflann.set_distance_type(distance_type='euclidean')
     flann = pyflann.FLANN()
@@ -20,9 +17,6 @@ def build_index(dataset, n_neighbors):
 
 
 def create_neighbor_lookup(nearest_neighbors):
-    """
-    Key is the reference face, values are the neighbors.
-    """
     nn_lookup = {}
     for i in range(nearest_neighbors.shape[0]):
         nn_lookup[i] = nearest_neighbors[i, :]
@@ -66,9 +60,6 @@ def calculate_symmetric_dist_row(nearest_neighbors, nn_lookup, row_no):
 
 
 def calculate_symmetric_dist(app_nearest_neighbors):
-    """
-    This function calculates the symmetric distance matrix.
-    """
     nn_lookup = create_neighbor_lookup(app_nearest_neighbors)
     d = np.zeros(app_nearest_neighbors.shape)
 
@@ -82,10 +73,6 @@ def calculate_symmetric_dist(app_nearest_neighbors):
 
 
 def aro_clustering(app_nearest_neighbors, distance_matrix, thresh):
-    '''
-    Approximate rank-order clustering. Takes in the nearest neighbors matrix
-    and outputs clusters - list of lists.
-    '''
 
     # Clustering :
     clusters = []

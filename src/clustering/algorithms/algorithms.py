@@ -35,7 +35,6 @@ def cluster_threshold(vectors, params_dict):
     return labels
 
 
-# https://github.com/zhly0/facenet-face-cluster-chinese-whispers-/
 def chinese_whisperers(encodings, params_dict=None):
     if params_dict is None:
         params_dict = {"threshold": 0.18, "iterations": 5, "distance": find_cosine_similarity}
