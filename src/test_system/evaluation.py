@@ -41,14 +41,22 @@ def evaluate_embeddings_creator(models, path_to_faces, logger=None):
     if logger is None:
         logger = get_default_logger("Embedding")
 
-    for model, path in models.items():
+    for model_constructor, weight_path, embeddings_path in models:
         embeddings_creator = ImageEmbeddingsCreator(path_to_faces)
 
         start_time = default_timer()
-        embeddings_creator.create_embeddings(model, path)
+        model = model_constructor(weight_path)
         end_time = default_timer()
 
-        logger.info(f"Embeddings creation time for model {model.Name} is {end_time - start_time}s")
+        init_time = end_time - start_time
+
+        start_time = default_timer()
+        embeddings_creator.create_embeddings(model, embeddings_path)
+        end_time = default_timer()
+
+        embed_time = end_time - start_time
+
+        logger.info(f"Model {model.Name} initialized in {init_time}s and embeddings created in {embed_time}s")
 
 
 def evaluate_clustering_algorithms(algorithms_params_dict, embedding_path, results_path, metric=Metric.F1, logger=None):
