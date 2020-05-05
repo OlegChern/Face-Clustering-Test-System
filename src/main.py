@@ -1,9 +1,10 @@
-from src.extraction.mtcnn_face_extraction import extract_faces_mtcnn
 from src.image_processing.image_loader import ImageLoader
 from src.clustering.clustering_utils import find_taxicab_distance, find_cosine_similarity, find_euclidean_distance
+from src.test_system.evaluation import evaluate_mtcnn_alignment
+from src.extraction.face_align import EyesNoseAligner, EyesOnlyAligner, MappingAligner
 
 embedding_file = "./results/embeddings/embeddings.txt"
-save_path = "./results/extraction/aligned_3_points"
+save_path = "./results/extraction/"
 images_path = "./images"
 sorted_path = "./results/clustered"
 
@@ -13,12 +14,17 @@ openface_weights = "./models/open_face/openface_weights.h5"
 vgg_face_weights = "./models/vgg_face/vgg_face_weights.h5"
 deep_face_weigths = "./models/deep_face/VGGFace2_DeepFace_weights_val-0.9034.h5"
 
-loader = ImageLoader(images_path)
-extract_faces_mtcnn(loader, save_path, align=True)
 
-# logger = get_file_logger()
+def test_extraction_and_alignment():
+    # logger = get_file_logger()
 
-models = dict()
+    aligners = [EyesOnlyAligner(), EyesNoseAligner(), MappingAligner(), None]
+    evaluate_mtcnn_alignment(images_path, save_path, aligners)
+
+
+test_extraction_and_alignment()
+
+# models = dict()
 
 # facenet_model = FaceNet(facenet_sandberg_model)
 facenet_file = "./results/embeddings/embeddings.txt"

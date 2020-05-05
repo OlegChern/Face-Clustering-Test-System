@@ -20,6 +20,7 @@ class ImageLoader:
     def next_image(self):
         for image_path in self.ImagesList:
             image = cv2.imread(image_path)
+            # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
             if self.TargetSize is not None:
                 image = cv2.resize(image, self.TargetSize)

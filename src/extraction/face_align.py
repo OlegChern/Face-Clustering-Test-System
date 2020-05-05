@@ -1,100 +1,118 @@
-import math
+import cv2
+import dlib
 
 import numpy as np
 from PIL import Image
 from enum import Enum, auto
 
-from src.clustering.clustering_utils import find_euclidean_distance
+from src.extraction.align_utils import distance, rotate_point, is_between, cosine_formula, LANDMARKS_PREDICTOR_PATH, \
+    INNER_EYES_AND_BOTTOM_LIP, OUTER_EYES_AND_NOSE, MINMAX_TEMPLATE
 
 
-class AlignType(Enum):
-    EYES_NOSE, EYES_ONLY, NONE = auto(), auto(), auto()
+# Abstract class for face aligners
+class FaceAligner:
+    Name = "DefaultAlignerName"
+
+    def align_face(self, image, face):
+        pass
 
 
-def align_face_eyes(image, face):
-    left_eye = np.array(face["keypoints"]["left_eye"])
-    right_eye = np.array(face["keypoints"]["right_eye"])
+class MappingAligner(FaceAligner):
+    Name = "Mapping_Aligner"
 
-    left_x = left_eye[0]
-    left_y = left_eye[1]
+    def __init__(self, indices=INNER_EYES_AND_BOTTOM_LIP, detector_path=LANDMARKS_PREDICTOR_PATH):
+        self.Predictor = dlib.shape_predictor(detector_path)
+        self.Indices = indices
 
-    right_x = right_eye[0]
-    right_y = right_eye[1]
+    def align_face(self, image, face):
+        x, y, w, h = face["box"]
+        bounding_box = dlib.rectangle(x, y, x + w, y + h)
 
-    if left_y > right_y:
-        point_third = np.asarray((right_x, left_y))
-        rotation = -1
-    else:
-        point_third = np.asarray((left_x, right_y))
-        rotation = 1
+        points = self.Predictor(image, bounding_box)
+        landmarks = list(map(lambda p: (p.x, p.y), points.parts()))
+        landmarks = np.float32(landmarks)
 
-    a = find_euclidean_distance(left_eye, point_third)
-    b = find_euclidean_distance(right_eye, point_third)
-    c = find_euclidean_distance(right_eye, left_eye)
+        landmark_indices = np.array(self.Indices)
 
-    angle_cos = (c * c + b * b - a * a) / (2 * b * c)
-    angle = np.arccos(angle_cos)
-    angle = (180 * angle) / math.pi
+        desired_points = MINMAX_TEMPLATE[landmark_indices] * np.array([w, h], dtype="float32")
 
-    if rotation == -1:
-        angle = 90 - angle
+        T = cv2.getAffineTransform(landmarks[landmark_indices], desired_points)
+        image = cv2.warpAffine(image, T, (w, h))
 
-    image = Image.fromarray(image)
-    image = np.asarray(image.rotate(rotation * angle))
-
-    return image
+        return image
 
 
-def align_face_eyes_nose(image, face):
-    left_eye = np.array(face["keypoints"]["left_eye"])
-    right_eye = np.array(face["keypoints"]["right_eye"])
-    nose = np.array(face["keypoints"]["nose"])
+class EyesNoseAligner(FaceAligner):
+    Name = "Eyes&Nose_Aligner"
 
-    x, y, w, h = face["box"]
-    forehead_center = np.array(((left_eye[0] + right_eye[0]) // 2, (left_eye[1] + right_eye[1]) // 2))
-    upper_center = np.array((x + (w // 2), y))
+    def align_face(self, image, face):
+        left_eye = face["keypoints"]["left_eye"]
+        right_eye = face["keypoints"]["right_eye"]
+        nose = face["keypoints"]["nose"]
 
-    length_line1 = find_euclidean_distance(forehead_center, nose)
-    length_line2 = find_euclidean_distance(upper_center, nose)
-    length_line3 = find_euclidean_distance(upper_center, forehead_center)
+        x, y, w, h = face["box"]
+        x2 = x + w
+        y2 = y + h
 
-    cos_a = -(length_line3 ** 2 - length_line2 ** 2 - length_line1 ** 2) / (2 * length_line2 * length_line1)
-    angle = np.arccos(cos_a)
+        center_of_forehead = ((left_eye[0] + right_eye[0]) // 2, (left_eye[1] + right_eye[1]) // 2)
+        center_pred = (x + w // 2, y)
 
-    def rotate_point(origin, point, angle):
-        ox, oy = origin
-        px, py = point
+        length_line1 = distance(center_of_forehead, nose)
+        length_line2 = distance(center_pred, nose)
+        length_line3 = distance(center_pred, center_of_forehead)
 
-        qx = ox + np.cos(angle) * (px - ox) - np.sin(angle) * (py - oy)
-        qy = oy + np.sin(angle) * (px - ox) + np.cos(angle) * (py - oy)
-        return qx, qy
+        cos_a = cosine_formula(length_line1, length_line2, length_line3)
+        angle = np.arccos(cos_a)
 
-    def is_between(point1, point2, point3, extra_point):
-        c1 = (point2[0] - point1[0]) * (extra_point[1] - point1[1]) - (point2[1] - point1[1]) * (
-                extra_point[0] - point1[0])
-        c2 = (point3[0] - point2[0]) * (extra_point[1] - point2[1]) - (point3[1] - point2[1]) * (
-                extra_point[0] - point2[0])
-        c3 = (point1[0] - point3[0]) * (extra_point[1] - point3[1]) - (point1[1] - point3[1]) * (
-                extra_point[0] - point3[0])
-        if (c1 < 0 and c2 < 0 and c3 < 0) or (c1 > 0 and c2 > 0 and c3 > 0):
-            return True
+        rotated_point = rotate_point(nose, center_of_forehead, angle)
+        rotated_point = (int(rotated_point[0]), int(rotated_point[1]))
+
+        if is_between(nose, center_of_forehead, center_pred, rotated_point):
+            angle = np.degrees(-angle)
         else:
-            return False
+            angle = np.degrees(angle)
 
-    rotated_point = rotate_point(nose, forehead_center, angle)
-    rotated_point = (int(rotated_point[0]), int(rotated_point[1]))
+        M = cv2.getRotationMatrix2D(nose, angle, 1)
+        image = cv2.warpAffine(image, M, (image.shape[1], image.shape[0]), flags=cv2.INTER_CUBIC)
 
-    if is_between(nose, forehead_center, forehead_center, rotated_point):
-        rotation = -1
-    else:
-        rotation = 1
+        image = image[y:y2, x:x2]
 
-    angle = (180 * angle) / math.pi
+        return image
 
-    if rotation == -1:
-        angle = 90 - angle
 
-    image = Image.fromarray(image)
-    image = np.array(image.rotate(rotation * angle))
+class EyesOnlyAligner(FaceAligner):
+    Name = "Eyes_Only_Aligner"
 
-    return image
+    def __init__(self, left_eye=(0.25, 0.25)):
+        self.LeftEyeDesiredLocation = left_eye
+
+    def align_face(self, image, face):
+        left_eye = face["keypoints"]["left_eye"]
+        right_eye = face["keypoints"]["right_eye"]
+
+        _, _, w, h = face["box"]
+        target_size = (w, h)
+
+        dy = right_eye[1] - left_eye[1]
+        dx = right_eye[0] - left_eye[0]
+        angle = np.degrees(np.arctan2(dy, dx))
+
+        desired_right_eye_x = 1.0 - self.LeftEyeDesiredLocation[0]
+
+        dist = np.sqrt((dx ** 2) + (dy ** 2))
+        desired_dist = (desired_right_eye_x - self.LeftEyeDesiredLocation[0])
+        desired_dist *= target_size[0]
+        scale = desired_dist / dist
+
+        eyes_center = ((left_eye[0] + right_eye[0]) // 2, (left_eye[1] + right_eye[1]) // 2)
+        M = cv2.getRotationMatrix2D(eyes_center, angle, scale)
+
+        tX = target_size[0] * 0.5
+        tY = target_size[1] * self.LeftEyeDesiredLocation[1]
+
+        M[0, 2] += (tX - eyes_center[0])
+        M[1, 2] += (tY - eyes_center[1])
+
+        image = cv2.warpAffine(image, M, target_size, flags=cv2.INTER_CUBIC)
+
+        return image

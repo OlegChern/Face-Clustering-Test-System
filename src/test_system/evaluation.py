@@ -4,8 +4,7 @@ from src.image_processing.image_utils import sort_images
 from src.image_processing.image_loader import ImageLoader
 from src.test_system.logging import get_default_logger
 from src.embedding.embeddings_creation import ImageEmbeddingsCreator
-from src.extraction.mtcnn_face_extraction import extract_faces_mtcnn
-from src.extraction.face_align import AlignType
+from src.extraction.mtcnn_face_extraction import FaceExtractorMTCNN
 from timeit import default_timer
 
 import os
@@ -16,25 +15,22 @@ class Metric(Enum):
     PRECISION, RECALL, F1 = auto(), auto(), auto()
 
 
-align_names = {AlignType.NONE: "none",
-               AlignType.EYES_ONLY: "eyes",
-               AlignType.EYES_NOSE: "eyes_nose"}
-
-
-def evaluate_mtcnn_alignment(images_path, save_path, aligns, logger=None):
+def evaluate_mtcnn_alignment(images_path, save_path, aligners, logger=None):
     if logger is None:
         logger = get_default_logger("Alignment")
 
     loader = ImageLoader(images_path)
-    for align_type in aligns:
+    extractor = FaceExtractorMTCNN()
+    for aligner in aligners:
+        name = aligner.Name if aligner is not None else "None"
 
-        target_path = save_path + "/" + align_names[align_type]
+        target_path = save_path + "/" + name
         if not os.path.exists(target_path):
             os.mkdir(target_path)
 
-        work_time = extract_faces_mtcnn(loader, target_path, align_type)
+        extractor.extract_faces(loader, target_path, aligner)
 
-        logger.info(f"{align_names[align_type]} for the image set took {work_time}s")
+        logger.info(f"{name} alignment for the image set took {extractor.AlignmentTime}s")
 
 
 def evaluate_embeddings_creator(models, path_to_faces, logger=None):
@@ -80,7 +76,7 @@ def evaluate_clustering_algorithms(algorithms_params_dict, embedding_path, resul
 
         path = results_path + f"/{name}"
         if not os.path.exists(path):
-            os.mkdir(path)
+            os.mkdir(path)  
 
         sort_images(results, path)
         prec, rec, f1 = evaluate_metrics(results)
