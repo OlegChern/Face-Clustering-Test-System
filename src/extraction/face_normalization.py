@@ -3,7 +3,8 @@ import dlib
 
 import numpy as np
 
-from src.extraction.align_utils import distance, rotate_point, is_between, cosine_formula, LANDMARKS_PREDICTOR_PATH, \
+from abc import abstractmethod
+from src.extraction.normalization_utils import distance, rotate_point, is_between, cosine_formula, LANDMARKS_PREDICTOR_PATH, \
     INNER_EYES_AND_BOTTOM_LIP, OUTER_EYES_AND_NOSE, MINMAX_TEMPLATE
 
 
@@ -11,8 +12,9 @@ from src.extraction.align_utils import distance, rotate_point, is_between, cosin
 class FaceNormalizer:
     Name = "Default Aligner Name"
 
+    @abstractmethod
     def normalize_face(self, image, face):
-        pass
+        ...
 
 
 class MappingAligner(FaceNormalizer):

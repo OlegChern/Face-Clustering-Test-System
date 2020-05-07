@@ -1,6 +1,6 @@
 from mtcnn import MTCNN
 
-from src.extraction.align_utils import LANDMARKS_PREDICTOR_PATH, RIGHT_EYE, LEFT_EYE, NOSE
+from src.extraction.normalization_utils import LANDMARKS_PREDICTOR_PATH, RIGHT_EYE, LEFT_EYE, NOSE
 
 from timeit import default_timer
 from abc import abstractmethod
