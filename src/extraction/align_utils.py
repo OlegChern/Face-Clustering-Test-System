@@ -1,5 +1,7 @@
 import numpy as np
 
+LANDMARKS_PREDICTOR_PATH = "./models/dlib_landmarks_detector/shape_predictor_68_face_landmarks.dat"
+
 TEMPLATE = np.float32([
     (0.0792396913815, 0.339223741112), (0.0829219487236, 0.456955367943),
     (0.0967927109165, 0.575648016728), (0.122141515615, 0.691921601066),
@@ -45,8 +47,6 @@ OUTER_EYES_AND_NOSE = [36, 45, 33]
 LEFT_EYE = [37, 38, 39, 40, 41, 42]
 RIGHT_EYE = [43, 44, 45, 46, 47, 48]
 NOSE = [32, 33, 34, 35, 36]
-
-LANDMARKS_PREDICTOR_PATH = "./models/dlib_landmarks_detector/shape_predictor_68_face_landmarks.dat"
 
 
 def distance(a, b):

@@ -2,8 +2,6 @@ import cv2
 import dlib
 
 import numpy as np
-from PIL import Image
-from enum import Enum, auto
 
 from src.extraction.align_utils import distance, rotate_point, is_between, cosine_formula, LANDMARKS_PREDICTOR_PATH, \
     INNER_EYES_AND_BOTTOM_LIP, OUTER_EYES_AND_NOSE, MINMAX_TEMPLATE
@@ -11,14 +9,14 @@ from src.extraction.align_utils import distance, rotate_point, is_between, cosin
 
 # Abstract class for face normalizing
 class FaceNormalizer:
-    Name = "DefaultAlignerName"
+    Name = "Default Aligner Name"
 
     def normalize_face(self, image, face):
         pass
 
 
 class MappingAligner(FaceNormalizer):
-    Name = "Mapping_Aligner"
+    Name = "Dlib Mapping Aligner"
 
     def __init__(self, indices=OUTER_EYES_AND_NOSE, detector_path=LANDMARKS_PREDICTOR_PATH, target_size=(224, 224)):
         self.Predictor = dlib.shape_predictor(detector_path)
@@ -43,7 +41,7 @@ class MappingAligner(FaceNormalizer):
 
 
 class EyesNoseAligner(FaceNormalizer):
-    Name = "Eyes_Nose_Aligner"
+    Name = "Eyes Nose Aligner"
 
     def normalize_face(self, image, face):
         left_eye = face["keypoints"]["left_eye"]
@@ -72,7 +70,7 @@ class EyesNoseAligner(FaceNormalizer):
         else:
             angle = np.degrees(angle)
 
-        M = cv2.getRotationMatrix2D(nose, angle, 1)
+        M = cv2.getRotationMatrix2D((nose[0], nose[1]), angle, 1)
         image = cv2.warpAffine(image, M, (image.shape[1], image.shape[0]), flags=cv2.INTER_CUBIC)
 
         image = image[y:y2, x:x2]
@@ -81,9 +79,9 @@ class EyesNoseAligner(FaceNormalizer):
 
 
 class EyesOnlyAligner(FaceNormalizer):
-    Name = "Eyes_Only_Aligner"
+    Name = "Eyes Only Aligner"
 
-    def __init__(self, left_eye=(0.25, 0.25)):
+    def __init__(self, left_eye=(0.3, 0.3)):
         self.LeftEyeDesiredLocation = left_eye
 
     def normalize_face(self, image, face):

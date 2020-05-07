@@ -1,10 +1,24 @@
+from src.clustering.algorithms.approximate_rank_order import cluster_app_rank_order
+from src.clustering.algorithms.rank_order import cluster_rank_order
+from src.clustering.algorithms.scikit_algorithms import cluster_mean_shift, cluster_dbscan, cluster_kmeans, \
+    cluster_affinity_propagation, cluster_spectral, cluster_agglomerative, cluster_optics
 from src.image_processing.image_loader import ImageLoader
 from src.clustering.clustering_utils import find_taxicab_distance, find_cosine_similarity, find_euclidean_distance
-from src.test_system.evaluation import evaluate_mtcnn_alignment
-from src.extraction.face_align import EyesNoseAligner, EyesOnlyAligner, MappingAligner
+from src.embedding.models_code.face_net import FaceNet
+from src.embedding.models_code.open_face import OpenFace
+from src.embedding.models_code.deep_face import DeepFace
+from src.embedding.models_code.vgg_face import FaceVGG
+from src.test_system.evaluation import evaluate_normalizers, evaluate_embeddings_creator, \
+    evaluate_clustering_algorithms
+from src.extraction.face_normalization import EyesNoseAligner, EyesOnlyAligner, MappingAligner, FaceCropperVGG
+from src.clustering.algorithms.algorithms import chinese_whisperers, cluster_threshold
+from src.extraction.face_extraction import FaceExtractorDlib, FaceExtractorMTCNN
 
-embedding_file = "./results/embeddings/embeddings.txt"
+import numpy as np
+
+embedding_file = "./results/embeddings/deepface_embeddings.txt"
 save_path = "./results/extraction/"
+load_path = "./results/extraction/Dlib_alignment_224"
 images_path = "./images"
 sorted_path = "./results/clustered"
 
@@ -18,54 +32,72 @@ deep_face_weigths = "./models/deep_face/VGGFace2_DeepFace_weights_val-0.9034.h5"
 def test_extraction_and_alignment():
     # logger = get_file_logger()
 
-    aligners = [EyesOnlyAligner(), EyesNoseAligner(), MappingAligner(), None]
-    evaluate_mtcnn_alignment(images_path, save_path, aligners)
+    extractors = list()
+    extractors.append(FaceExtractorMTCNN())
+    extractors.append(FaceExtractorDlib())
 
+    normalizers = list()
+    normalizers.append(EyesOnlyAligner())
+    normalizers.append(EyesNoseAligner())
+    normalizers.append(MappingAligner())
+    normalizers.append(FaceCropperVGG())
+
+    evaluate_normalizers(images_path, save_path, extractors, normalizers)
 
 test_extraction_and_alignment()
 
-# models = dict()
 
-# facenet_model = FaceNet(facenet_sandberg_model)
-facenet_file = "./results/embeddings/embeddings.txt"
-# models.update({facenet_model: facenet_file})
+# test_extraction_and_alignment()
 
-# openface_model = OpenFace(openface_weights)
-# openface_file = "./results/embeddings/embeddings.txt"
-# models_code.update({openface_model: openface_file})
-
-# vgg_model = FaceVGG(vgg_face_weights)
-# vgg_file = "./results/embeddings/embeddings.txt"
-# models_code.update({vgg_model: vgg_file})
+models = list()
 #
-
-# deepface_model = DeepFace(deep_face_weigths)
-# deepface_file = "./results/embeddings/embeddings.txt"
-# models.update({deepface_model: deepface_file})
+# facenet_file = "./results/embeddings/facenet_embeddings.txt"
+# facenet_model = (FaceNet, facenet_sandberg_model, facenet_file)
 #
-# evaluate_embeddings_creator(models, save_path)
+# models.append(facenet_model)
+#
+#
+#
+# extractor = FaceExtractorDlib()
+# loader = ImageLoader(images_path)
+# extractor.extract_faces(loader, load_path, align=True)
+
+# openface_file = "./results/embeddings/openface_embeddings.txt"
+# openface_model = (OpenFace, openface_weights, openface_file)
+# models.append(openface_model)
+
+# vgg_file = "./results/embeddings/vgg_embeddings.txt"
+# vgg_model = (FaceVGG, vgg_face_weights, vgg_file)
+# models.append(vgg_model)
+#
+#
+deepface_model = DeepFace(deep_face_weigths)
+deepface_file = "./results/embeddings/deepface_embeddings.txt"
+models.append((DeepFace, deep_face_weigths, deepface_file))
+#
+# evaluate_embeddings_creator(models, load_path)
 
 algorithms = dict()
 distances = [find_euclidean_distance, find_cosine_similarity, find_taxicab_distance]
 
-# app_rank_order_range = {"threshold": [[5]], "n_neighbors": [5]}
+# app_rank_order_range = {"threshold": np.arange(0, 200, 0.2), "n_neighbors": [5]}
 # algorithms.update({"Approximate Rank-Order": (cluster_app_rank_order, app_rank_order_range)})
 #
-# rank_order_range = {"threshold": np.arange(10, 15, 0.2), "k_neighbors": range(5, 11), "distance": ["euclidean", "manhattan"]}
+# rank_order_range = {"threshold": np.arange(0, 200, 0.2), "k_neighbors": range(5, 11), "distance": ["euclidean", "manhattan"]}
 # algorithms.update({"Rank-Order": (cluster_rank_order, rank_order_range)})
-
-
-# threshold_range = {"threshold": np.arange(0.1, 1, 0.0001), "distance": distances}
+#
+#
+# threshold_range = {"threshold": np.arange(0, 200, 0.1), "distance": distances}
 # algorithms.update({"Threshold Clustering": (cluster_threshold, threshold_range)})
-
-# chinese_whisperers_range = {"threshold": np.arange(0.1, 10, 0.1), "iterations": range(10, 11),
+#
+# chinese_whisperers_range = {"threshold": np.arange(0, 200, 0.1), "iterations": [10],
 #                             "distance": distances}
 # algorithms.update({"Chinese Whisperers": (chinese_whisperers, chinese_whisperers_range)})
+
+mean_shift_range = {"bandwidth": np.arange(0.5, 1.0, 0.00001)}
+algorithms.update({"Mean Shift": (cluster_mean_shift, mean_shift_range)})
 #
-# mean_shift_range = {"bandwidth": np.arange(0.1, 40, 0.1)}
-# algorithms.update({"Mean Shift": (cluster_mean_shift, mean_shift_range)})
-# #
-# dbscan_range = {"eps": range(1, 30), "min_samples": range(1, 5), "metric": distances}
+# dbscan_range = {"eps": range(1, 50), "min_samples": range(1, 8), "metric": distances}
 # algorithms.update({"DBSCAN": (cluster_dbscan, dbscan_range)})
 #
 # kmeans_range = {"n_clusters": range(1, 10), "random_state": range(50, 300, 10)}
@@ -82,5 +114,5 @@ distances = [find_euclidean_distance, find_cosine_similarity, find_taxicab_dista
 #
 # optics_range = {"min_samples": range(2, 10), "metric": distances}
 # algorithms.update({"OPTICS": (cluster_optics, optics_range)})
-#
+
 # evaluate_clustering_algorithms(algorithms, embedding_path=embedding_file, results_path=sorted_path)
