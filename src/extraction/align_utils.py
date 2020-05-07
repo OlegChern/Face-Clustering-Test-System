@@ -42,6 +42,10 @@ MINMAX_TEMPLATE = (TEMPLATE - TPL_MIN) / (TPL_MAX - TPL_MIN)
 INNER_EYES_AND_BOTTOM_LIP = [39, 42, 57]
 OUTER_EYES_AND_NOSE = [36, 45, 33]
 
+LEFT_EYE = [37, 38, 39, 40, 41, 42]
+RIGHT_EYE = [43, 44, 45, 46, 47, 48]
+NOSE = [32, 33, 34, 35, 36]
+
 LANDMARKS_PREDICTOR_PATH = "./models/dlib_landmarks_detector/shape_predictor_68_face_landmarks.dat"
 
 

@@ -9,22 +9,23 @@ from src.extraction.align_utils import distance, rotate_point, is_between, cosin
     INNER_EYES_AND_BOTTOM_LIP, OUTER_EYES_AND_NOSE, MINMAX_TEMPLATE
 
 
-# Abstract class for face aligners
-class FaceAligner:
+# Abstract class for face normalizing
+class FaceNormalizer:
     Name = "DefaultAlignerName"
 
-    def align_face(self, image, face):
+    def normalize_face(self, image, face):
         pass
 
 
-class MappingAligner(FaceAligner):
+class MappingAligner(FaceNormalizer):
     Name = "Mapping_Aligner"
 
-    def __init__(self, indices=INNER_EYES_AND_BOTTOM_LIP, detector_path=LANDMARKS_PREDICTOR_PATH):
+    def __init__(self, indices=OUTER_EYES_AND_NOSE, detector_path=LANDMARKS_PREDICTOR_PATH, target_size=(224, 224)):
         self.Predictor = dlib.shape_predictor(detector_path)
         self.Indices = indices
+        self.TargetSize = target_size
 
-    def align_face(self, image, face):
+    def normalize_face(self, image, face):
         x, y, w, h = face["box"]
         bounding_box = dlib.rectangle(x, y, x + w, y + h)
 
@@ -33,19 +34,18 @@ class MappingAligner(FaceAligner):
         landmarks = np.float32(landmarks)
 
         landmark_indices = np.array(self.Indices)
-
-        desired_points = MINMAX_TEMPLATE[landmark_indices] * np.array([w, h], dtype="float32")
+        desired_points = MINMAX_TEMPLATE[landmark_indices] * np.array(self.TargetSize, dtype="float32")
 
         T = cv2.getAffineTransform(landmarks[landmark_indices], desired_points)
-        image = cv2.warpAffine(image, T, (w, h))
+        image = cv2.warpAffine(image, T, self.TargetSize)
 
         return image
 
 
-class EyesNoseAligner(FaceAligner):
-    Name = "Eyes&Nose_Aligner"
+class EyesNoseAligner(FaceNormalizer):
+    Name = "Eyes_Nose_Aligner"
 
-    def align_face(self, image, face):
+    def normalize_face(self, image, face):
         left_eye = face["keypoints"]["left_eye"]
         right_eye = face["keypoints"]["right_eye"]
         nose = face["keypoints"]["nose"]
@@ -80,13 +80,13 @@ class EyesNoseAligner(FaceAligner):
         return image
 
 
-class EyesOnlyAligner(FaceAligner):
+class EyesOnlyAligner(FaceNormalizer):
     Name = "Eyes_Only_Aligner"
 
     def __init__(self, left_eye=(0.25, 0.25)):
         self.LeftEyeDesiredLocation = left_eye
 
-    def align_face(self, image, face):
+    def normalize_face(self, image, face):
         left_eye = face["keypoints"]["left_eye"]
         right_eye = face["keypoints"]["right_eye"]
 
@@ -114,5 +114,44 @@ class EyesOnlyAligner(FaceAligner):
         M[1, 2] += (tY - eyes_center[1])
 
         image = cv2.warpAffine(image, M, target_size, flags=cv2.INTER_CUBIC)
+
+        return image
+
+
+class FaceCropperVGG(FaceNormalizer):
+    Name = "VGG-Face Cropping"
+
+    def __init__(self, margin=20, target_size=(224, 224)):
+        self.Marging = margin
+        self.TargetSize = target_size
+
+    def normalize_face(self, image, face):
+        img_h, img_w, _ = image.shape
+
+        (x, y, w, h) = face["box"]
+        margin = int(min(w, h) * self.Marging / 100)
+
+        x_a = x - margin
+        y_a = y - margin
+        x_b = x + w + margin
+        y_b = y + h + margin
+
+        if x_a < 0:
+            x_b = min(x_b - x_a, img_w - 1)
+            x_a = 0
+        if y_a < 0:
+            y_b = min(y_b - y_a, img_h - 1)
+            y_a = 0
+        if x_b > img_w:
+            x_a = max(x_a - (x_b - img_w), 0)
+            x_b = img_w
+        if y_b > img_h:
+            y_a = max(y_a - (y_b - img_h), 0)
+            y_b = img_h
+
+        image = image[y_a: y_b, x_a: x_b]
+
+        image = cv2.resize(image, self.TargetSize, interpolation=cv2.INTER_AREA)
+        image = np.array(image)
 
         return image
