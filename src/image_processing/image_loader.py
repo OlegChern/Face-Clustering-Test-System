@@ -19,13 +19,15 @@ class ImageLoader:
     # A generator method
     def next_image(self):
         for image_path in self.ImagesList:
-            image = cv2.imread(image_path)
-            # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            image = cv2.imread(image_path, 1)
 
             if self.TargetSize is not None:
-                image = cv2.resize(image, self.TargetSize)
+                image = cv2.resize(image, self.TargetSize, interpolation=cv2.INTER_CUBIC)
 
             if self.PreprocessFunction is not None:
                 image = self.PreprocessFunction(image)
 
             yield image, image_path
+
+    def get_total_images_number(self):
+        return len(self.ImagesList)

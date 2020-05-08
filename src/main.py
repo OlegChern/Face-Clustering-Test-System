@@ -1,4 +1,4 @@
-from src.clustering.algorithms.approximate_rank_order import cluster_app_rank_order
+from src.clustering.algorithms.app_rank_order import cluster_app_rank_order
 from src.clustering.algorithms.rank_order import cluster_rank_order
 from src.clustering.algorithms.scikit_algorithms import cluster_mean_shift, cluster_dbscan, cluster_kmeans, \
     cluster_affinity_propagation, cluster_spectral, cluster_agglomerative, cluster_optics
@@ -68,13 +68,13 @@ def test_clustering_algorithms(embedding_file):
     # chinese_whisperers_range = {"threshold": np.arange(0, 10, 0.1), "iterations": [10, 20], "distance": distances}
     # algorithms.update({"Chinese Whisperers": (chinese_whisperers, chinese_whisperers_range)})
     #
-    # app_rank_order_range = {"threshold": np.arange(0, 20, 0.01), "n_neighbors": range(3, 11),
-    #                         "distance": ["euclidean", "manhattan"]}
-    # algorithms.update({"Approximate Rank-Order": (cluster_app_rank_order, app_rank_order_range)})
+    app_rank_order_range = {"threshold": np.arange(0, 10, 0.1), "n_neighbors": range(3, 11),
+                            "distance": ["euclidean", "manhattan"]}
+    algorithms.update({"Approximate Rank-Order": (cluster_app_rank_order, app_rank_order_range)})
 
-    rank_order_range = {"threshold": np.arange(0, 11, 0.1), "k_neighbors": range(7, 17),
-                        "distance": ["euclidean", "manhattan"]}
-    algorithms.update({"Rank-Order": (cluster_rank_order, rank_order_range)})
+    # rank_order_range = {"threshold": np.arange(0, 11, 0.1), "k_neighbors": range(7, 17),
+    #                     "distance": ["euclidean", "manhattan"]}
+    # algorithms.update({"Rank-Order": (cluster_rank_order, rank_order_range)})
 
     # mean_shift_range = {"bandwidth": np.arange(0.5, 1.0, 0.00001)}
     # algorithms.update({"Mean Shift": (cluster_mean_shift, mean_shift_range)})

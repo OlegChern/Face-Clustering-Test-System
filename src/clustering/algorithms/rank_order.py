@@ -66,8 +66,14 @@ def cluster_rank_order(vectors, params_dict=None):
 
         for ci, cj in merging_candidates:
             while merged_into[ci] != ci or merged_into[cj] != cj:
+                old_ci = ci
+                old_cj = cj
+
                 ci = merged_into[ci]
                 cj = merged_into[cj]
+
+                merged_into[old_ci] = merged_into[ci]
+                merged_into[old_cj] = merged_into[cj]
 
             if ci == cj:
                 continue
