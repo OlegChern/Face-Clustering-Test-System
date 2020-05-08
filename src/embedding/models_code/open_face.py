@@ -7,11 +7,13 @@ from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 from keras.layers.pooling import MaxPooling2D, AveragePooling2D
 
+from src.embedding.embeddings_creation import AbstractEmbeddingModel
+
 import cv2
 import numpy as np
 
 
-class OpenFace:
+class OpenFace(AbstractEmbeddingModel):
     InputSize = (96, 96)
     InputShape = (96, 96, 3)
 
@@ -21,15 +23,11 @@ class OpenFace:
         self.Model.load_weights(weights_path)
 
     def preprocess_input(self, image):
-        image = cv2.resize(image, self.InputSize)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = cv2.resize(image, self.InputSize, interpolation=cv2.INTER_CUBIC)
 
-        pixels = np.asarray(image)
-        pixels = pixels[:, :, ::-1]
-        pixels = np.around(np.transpose(pixels, (1, 0, 2)), decimals=12)
-
-        pixels = pixels.astype('float32')
-        mean, std = pixels.mean(), pixels.std()
-        pixels = (pixels - mean) / std
+        pixels = np.asarray(image, dtype="float32")
+        pixels = np.around(np.transpose(pixels, (0, 1, 2)) / 255.0, decimals=12)
 
         samples = np.expand_dims(pixels, axis=0)
 

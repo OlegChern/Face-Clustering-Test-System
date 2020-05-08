@@ -1,3 +1,5 @@
+from src.embedding.embeddings_creation import AbstractEmbeddingModel
+
 from keras.models import Model
 from keras.layers import Activation
 from keras.layers import BatchNormalization
@@ -16,7 +18,7 @@ import cv2
 import numpy as np
 
 
-class FaceNet:
+class FaceNet(AbstractEmbeddingModel):
     InputSize = (160, 160)
     InputShape = (160, 160, 3)
 
@@ -29,7 +31,6 @@ class FaceNet:
         image = cv2.resize(image, self.InputSize)
 
         pixels = np.asarray(image)
-        pixels = pixels[:, :, ::-1]
 
         pixels = pixels.astype('float32')
         mean, std = pixels.mean(), pixels.std()

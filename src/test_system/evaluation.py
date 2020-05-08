@@ -4,7 +4,7 @@ from src.image_processing.image_utils import sort_images
 from src.image_processing.image_loader import ImageLoader
 from src.test_system.logging import get_default_logger
 from src.embedding.embeddings_creation import ImageEmbeddingsCreator
-from src.extraction.mtcnn_face_extraction import FaceExtractorMTCNN
+from src.extraction.face_extraction import FaceExtractorMTCNN
 from timeit import default_timer
 
 import os
@@ -15,44 +15,43 @@ class Metric(Enum):
     PRECISION, RECALL, F1 = auto(), auto(), auto()
 
 
-def evaluate_mtcnn_alignment(images_path, save_path, aligners, logger=None):
+def evaluate_normalizers(images_path, save_path, extractors, normalizers, logger=None):
     if logger is None:
         logger = get_default_logger("Alignment")
 
-    loader = ImageLoader(images_path)
-    extractor = FaceExtractorMTCNN()
-    for aligner in aligners:
-        name = aligner.Name if aligner is not None else "None"
+    for extractor in extractors:
+        for normalizer in normalizers:
+            loader = ImageLoader(images_path)
 
-        target_path = save_path + "/" + name
-        if not os.path.exists(target_path):
-            os.mkdir(target_path)
+            name = normalizer.Name if normalizer is not None else "No"
+            extractor.extract_faces(loader, save_path, normalizer)
 
-        extractor.extract_faces(loader, target_path, aligner)
-
-        logger.info(f"{name} alignment for the image set took {extractor.AlignmentTime}s")
+            logger.info(f"{name} normalization for {extractor.Name} took {extractor.NormalizationTime}s")
 
 
-def evaluate_embeddings_creator(models, path_to_faces, logger=None):
+def evaluate_embeddings_creator(models, faces_path, embeddings_dir, logger=None):
     if logger is None:
         logger = get_default_logger("Embedding")
 
-    for model_constructor, weight_path, embeddings_path in models:
-        embeddings_creator = ImageEmbeddingsCreator(path_to_faces)
+    if not os.path.exists(embeddings_dir):
+        os.mkdir(embeddings_dir)
+
+    for model_constructor, kwargs in models:
+        embeddings_creator = ImageEmbeddingsCreator(faces_path)
 
         start_time = default_timer()
-        model = model_constructor(weight_path)
+        model = model_constructor(**kwargs)
         end_time = default_timer()
 
         init_time = end_time - start_time
 
-        start_time = default_timer()
-        embeddings_creator.create_embeddings(model, embeddings_path)
-        end_time = default_timer()
+        result_path = f"{embeddings_dir}/{model.Name}.txt"
+        embeddings_creator.create_embeddings(model, result_path)
 
-        embed_time = end_time - start_time
-
-        logger.info(f"Model {model.Name} initialized in {init_time}s and embeddings created in {embed_time}s")
+        logger.info(
+            f"Model {model.Name} initialized in {init_time}s, "
+            f"image prepocessing took {embeddings_creator.ImagePreprocessingTime}s "
+            f"and embeddings creation took {embeddings_creator.EmbeddingsCreationTime}s")
 
 
 def evaluate_clustering_algorithms(algorithms_params_dict, embedding_path, results_path, metric=Metric.F1, logger=None):
@@ -63,8 +62,8 @@ def evaluate_clustering_algorithms(algorithms_params_dict, embedding_path, resul
 
     params = dict()
     params.update({Metric.F1: None})
-    params.update({Metric.PRECISION: None})
     params.update({Metric.RECALL: None})
+    params.update({Metric.PRECISION: None})
 
     for name, (algorithm, params_range) in algorithms_params_dict.items():
         params[Metric.PRECISION], params[Metric.RECALL], params[Metric.F1] = \
@@ -76,7 +75,7 @@ def evaluate_clustering_algorithms(algorithms_params_dict, embedding_path, resul
 
         path = results_path + f"/{name}"
         if not os.path.exists(path):
-            os.mkdir(path)  
+            os.mkdir(path)
 
         sort_images(results, path)
         prec, rec, f1 = evaluate_metrics(results)
