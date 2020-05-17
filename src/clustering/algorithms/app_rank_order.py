@@ -32,12 +32,11 @@ def calculate_symmetric_dist_row(nearest_neighbors, nn_lookup, row_no):
     for idx, neighbor in enumerate(f1[1:]):
         Oi = idx + 1
         co_neighbor = True
-        row = nn_lookup[neighbor]
-        corr_rows = np.where(row == row_no)
 
-        if len(corr_rows[0]):
-            Oj = corr_rows[0][0] + 1
-        else:
+        try:
+            row = nn_lookup[neighbor]
+            Oj = np.where(row == row_no)[0][0] + 1
+        except IndexError:
             Oj = nearest_neighbors.shape[1] + 1
             co_neighbor = False
 

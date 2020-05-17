@@ -14,7 +14,6 @@ from keras.layers import MaxPooling2D
 from keras.layers import add
 from keras import backend as K
 
-import cv2
 import numpy as np
 
 
@@ -27,9 +26,8 @@ class FaceNet(AbstractEmbeddingModel):
         self.Model = self.create_model()
         self.Model.load_weights(weights_path)
 
-    def preprocess_input(self, image):
-        image = cv2.resize(image, self.InputSize)
-
+    @staticmethod
+    def preprocess_input(image):
         pixels = np.asarray(image)
 
         pixels = pixels.astype('float32')

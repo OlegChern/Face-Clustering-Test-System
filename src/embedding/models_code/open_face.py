@@ -22,9 +22,9 @@ class OpenFace(AbstractEmbeddingModel):
         self.Model = self.create_model()
         self.Model.load_weights(weights_path)
 
-    def preprocess_input(self, image):
+    @staticmethod
+    def preprocess_input(image):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = cv2.resize(image, self.InputSize, interpolation=cv2.INTER_CUBIC)
 
         pixels = np.asarray(image, dtype="float32")
         pixels = np.around(np.transpose(pixels, (0, 1, 2)) / 255.0, decimals=12)

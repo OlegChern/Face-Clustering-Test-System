@@ -2,7 +2,6 @@ from keras_vggface import VGGFace
 from keras.applications.imagenet_utils import preprocess_input as imagenet_preprocess_input
 from src.embedding.embeddings_creation import AbstractEmbeddingModel
 
-import cv2
 import numpy as np
 
 
@@ -14,8 +13,8 @@ class FaceVGG(AbstractEmbeddingModel):
         self.Name = name
         self.Model = VGGFace(include_top=False, model=model, input_shape=self.InputShape, pooling='avg')
 
-    def preprocess_input(self, image):
-        image = cv2.resize(image, self.InputSize, interpolation=cv2.INTER_CUBIC)
+    @staticmethod
+    def preprocess_input(image):
         image = np.expand_dims(image, axis=0)
         image = imagenet_preprocess_input(image)
 

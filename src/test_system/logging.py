@@ -4,7 +4,7 @@ import logging
 import logging.config
 
 
-def get_file_logger(log_config_dir="./logs"):
+def get_file_logger(log_config_dir="./logs", log_name="results"):
     current_date = datetime.datetime.now()
     current_date = current_date.strftime("%Y-%m-%d")
 
@@ -14,7 +14,7 @@ def get_file_logger(log_config_dir="./logs"):
             "fileHandler": {
                 "class": "logging.FileHandler",
                 "formatter": "myFormatter",
-                "filename": f"{log_config_dir}/{current_date}.log"
+                "filename": f"{log_config_dir}/{log_name}_{current_date}.log"
             }
         },
         "loggers": {

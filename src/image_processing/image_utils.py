@@ -8,7 +8,12 @@ def extract_person_name(labeled_image):
     sep_pos = image_path.rfind("/") + 1
     dot_pos = image_path.rfind('.')
     image_name = image_path[sep_pos:dot_pos].replace("\\", "/")
-    person_name = image_name.split("_")[0]
+
+    name_parts = image_name.split("_")
+    if len(name_parts) > 2:
+        person_name = f"{name_parts[0]}_{name_parts[1]}"
+    else:
+        person_name = name_parts[0]
 
     return image_path, person_name, label
 

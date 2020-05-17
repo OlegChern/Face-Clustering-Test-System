@@ -1,6 +1,7 @@
 from src.image_processing.image_loader import ImageLoader
 from timeit import default_timer
 from abc import abstractmethod
+from tqdm import tqdm
 
 from numpy import array_str
 import numpy as np
@@ -11,8 +12,9 @@ class AbstractEmbeddingModel:
     InputShape = None
     InputSize = None
 
+    @staticmethod
     @abstractmethod
-    def preprocess_input(self, image):
+    def preprocess_input(image):
         ...
 
     @abstractmethod
@@ -33,19 +35,16 @@ class ImageEmbeddingsCreator:
         self.ImagePreprocessingTime = 0
 
         save_path = save_path.replace("\\", "/")
-        loader = ImageLoader(self.FacesPath)
+        loader = ImageLoader(self.FacesPath, preproc_func=model.preprocess_input, target_size=model.InputSize)
 
         np.set_printoptions(threshold=sys.maxsize, precision=15)
         with open(save_path, "w") as file:
-            for image, image_path in loader.next_image():
-                start = default_timer()
-                samples = model.preprocess_input(image)
-                end = default_timer()
+            progress_bar = tqdm(loader.next_image(), total=loader.get_total_images_number(),
+                                desc=model.Name, leave=True)
 
-                self.ImagePreprocessingTime += (end - start)
-
+            for image, image_path in progress_bar:
                 start = default_timer()
-                result = model.predict(samples)
+                result = model.predict(image)
                 end = default_timer()
 
                 self.EmbeddingsCreationTime += (end - start)
@@ -57,3 +56,5 @@ class ImageEmbeddingsCreator:
 
                 result_string = f"{image_path}\t{embedding}\n"
                 file.write(result_string)
+
+        self.ImagePreprocessingTime = loader.ImagePreprocessingTime + loader.ImageResizeTime

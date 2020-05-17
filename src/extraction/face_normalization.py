@@ -51,6 +51,8 @@ class EyesNoseAligner(FaceNormalizer):
         nose = face["keypoints"]["nose"]
 
         x, y, w, h = face["box"]
+        x = max(x, 0)
+        y = max(y, 0)
         x2 = x + w
         y2 = y + h
 
@@ -61,7 +63,7 @@ class EyesNoseAligner(FaceNormalizer):
         length_line2 = distance(center_pred, nose)
         length_line3 = distance(center_pred, center_of_forehead)
 
-        cos_a = cosine_formula(length_line1, length_line2, length_line3)
+        cos_a = min(1, cosine_formula(length_line1, length_line2, length_line3))
         angle = np.arccos(cos_a)
 
         rotated_point = rotate_point(nose, center_of_forehead, angle)

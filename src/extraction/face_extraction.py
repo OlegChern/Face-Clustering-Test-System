@@ -4,6 +4,7 @@ from src.extraction.normalization_utils import LANDMARKS_PREDICTOR_PATH, RIGHT_E
 
 from timeit import default_timer
 from abc import abstractmethod
+from tqdm import tqdm
 
 import cv2
 import os
@@ -13,10 +14,15 @@ import numpy as np
 
 class FaceExtractor:
     Name = "Default Name"
+    ExtractedFaces = 0
     NormalizationTime = 0
+
+    def __init__(self, single_face=False):
+        self.OnlyOneFace = single_face
 
     def extract_faces(self, loader, save_path, aligner=None):
         self.NormalizationTime = 0
+        self.ExtractedFaces = 0
 
         save_path = save_path + "/" + self.Name
 
@@ -28,14 +34,24 @@ class FaceExtractor:
         if not os.path.exists(save_path):
             os.mkdir(save_path)
 
-        for image, image_path in loader.next_image():
+        aligner_name = aligner.Name if aligner is not None else "no normalization"
+        progress_bar = tqdm(loader.next_image(), total=loader.get_total_images_number(),
+                            desc=f"Extracting faces for {self.Name} with {aligner_name}:", leave=True)
+
+        for image, image_path in progress_bar:
             faces = self.get_bounding_boxes(image)
+
+            if self.OnlyOneFace:
+                if len(faces) > 0:
+                    faces = [max(faces, key=lambda f: f["box"][2] * f["box"][3])]
 
             sep_pos = image_path.rfind("/") + 1
             dot_pos = image_path.rfind('.')
             image_name = image_path[sep_pos:dot_pos].replace("\\", "/")
 
             for idx, face in enumerate(faces):
+                self.ExtractedFaces += 1
+
                 if aligner is not None:
                     start_time = default_timer()
                     face_image = aligner.normalize_face(image, face)
@@ -65,9 +81,10 @@ class FaceExtractor:
 class FaceExtractorMTCNN(FaceExtractor):
     Name = "MTCNN Face Extractor"
 
-    def __init__(self):
+    def __init__(self, single_face=False):
         self.NormalizationTime = 0
         self.Detector = MTCNN()
+        super().__init__(single_face)
 
     def get_bounding_boxes(self, image):
         return self.Detector.detect_faces(image)
@@ -76,10 +93,11 @@ class FaceExtractorMTCNN(FaceExtractor):
 class FaceExtractorDlib(FaceExtractor):
     Name = "Dlib-based Face Extractor"
 
-    def __init__(self, landmarks_predictor_path=LANDMARKS_PREDICTOR_PATH):
+    def __init__(self, landmarks_predictor_path=LANDMARKS_PREDICTOR_PATH, single_face=False):
         self.NormalizationTime = 0
         self.Detector = dlib.get_frontal_face_detector()
         self.LandmarksPredictor = dlib.shape_predictor(landmarks_predictor_path)
+        super().__init__(single_face)
 
     def get_bounding_boxes(self, image):
         faces = self.Detector(image, 1)
@@ -91,19 +109,30 @@ class FaceExtractorDlib(FaceExtractor):
             width = face.width()
             height = face.height()
 
-            bounding_box = dlib.rectangle(x1, y1, x1 + width, y1 + height)
-            points = self.LandmarksPredictor(image, bounding_box)
-            points = list(map(lambda p: (p.x, p.y), points.parts()))
-            points = np.float32(points)
-
-            box = dict()
-            box.update({"box": (x1, y1, width, height)})
-            box.update({"keypoints": {
-                "left_eye": points[LEFT_EYE].mean(axis=0).astype("int"),
-                "right_eye": points[RIGHT_EYE].mean(axis=0).astype("int"),
-                "nose": points[NOSE].mean(axis=0).astype("int")
-            }})
-
+            box = self.get_face_dict(image, x1, y1, width, height)
             boxes.append(box)
 
         return boxes
+
+    def get_face_dict(self, image, x1, y1, width, height):
+        bounding_box = dlib.rectangle(x1, y1, x1 + width, y1 + height)
+        points = self.LandmarksPredictor(image, bounding_box)
+        points = list(map(lambda p: (p.x, p.y), points.parts()))
+        points = np.float32(points)
+
+        box = dict()
+        box.update({"box": (x1, y1, width, height)})
+        box.update({"keypoints": {
+            "left_eye": points[LEFT_EYE].mean(axis=0).astype("int"),
+            "right_eye": points[RIGHT_EYE].mean(axis=0).astype("int"),
+            "nose": points[NOSE].mean(axis=0).astype("int")
+        }})
+
+        return box
+
+
+class FaceExtractorLFW(FaceExtractorDlib):
+    Name = "LFW Normalization"
+
+    def get_bounding_boxes(self, image):
+        return [self.get_face_dict(image, 0, 0, image.shape[1], image.shape[0])]
